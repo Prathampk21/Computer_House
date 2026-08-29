@@ -1,0 +1,13 @@
+{
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "regions": ["bom1"],
+  "crons": [
+    {
+      "path": "/api/jobs/notifications",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}
