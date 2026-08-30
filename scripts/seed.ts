@@ -15,10 +15,7 @@ import {
   shopSettings,
   specificationDefinitions,
 } from "../src/db/schema";
-import {
-  demoDealers,
-  demoProducts,
-} from "../src/features/catalog/demo-data";
+import { demoDealers, demoProducts } from "../src/features/catalog/demo-data";
 import {
   defaultFeatureFlags,
   defaultShopSettings,
@@ -43,7 +40,7 @@ async function main() {
     .values({
       key: "business",
       value: defaultShopSettings,
-      description: "Default white-label business settings.",
+      description: "Default Computer House business settings.",
     })
     .onConflictDoNothing();
 

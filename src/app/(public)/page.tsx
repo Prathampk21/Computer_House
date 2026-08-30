@@ -54,17 +54,17 @@ export default async function HomePage({
             <div className="flex flex-wrap gap-2">
               <Badge>
                 <BadgeCheck className="mr-1 size-3.5" aria-hidden="true" />
-                First-touch dealer attribution
+                Computer House Islampur
               </Badge>
-              <Badge variant="secondary">No checkout required</Badge>
+              <Badge variant="secondary">New, used, refurbished</Badge>
             </div>
             <h1 className="mt-5 max-w-3xl text-4xl font-bold leading-tight text-slate-950 md:text-5xl">
-              Computer shop catalogue built for WhatsApp-first enquiries.
+              Computer House
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
-              Browse new, used, and refurbished electronics, compare products,
-              request best prices, and attribute every meaningful enquiry to the
-              right dealer session.
+              Browse laptops, desktops, printers, monitors, accessories, and
+              refurbished systems. Compare options, request the best price, and
+              get quick local support from our Islampur team.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
@@ -74,46 +74,48 @@ export default async function HomePage({
                 </a>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link href="/dealer">Dealer referral portal</Link>
+                <Link href="/enquiry">Request best price</Link>
               </Button>
             </div>
             <div className="mt-7 grid gap-3 sm:grid-cols-3">
               {[
                 ["Products", products.length.toString()],
                 ["Starting at", formatCurrency(1999, shopSettings.currency)],
-                ["Attribution", `${shopSettings.defaultAttributionDays} days`],
+                ["Support", "WhatsApp ready"],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-lg border bg-slate-50 p-4">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     {label}
                   </p>
-                  <p className="mt-1 text-xl font-bold text-slate-950">{value}</p>
+                  <p className="mt-1 text-xl font-bold text-slate-950">
+                    {value}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
           {featured ? (
-          <div className="min-w-0">
-            <Card className="overflow-hidden">
-              <div className="relative aspect-[4/3] bg-slate-100">
-                <Image
-                  src={featured.image}
-                  alt={featured.name}
-                  fill
-                  priority
-                  className="object-cover"
-                  sizes="(min-width: 1024px) 45vw, 100vw"
-                />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 to-transparent p-5 text-white">
-                  <Badge variant="secondary">Featured arrival</Badge>
-                  <h2 className="mt-3 text-2xl font-bold">{featured.name}</h2>
-                  <p className="mt-1 text-sm text-slate-100">
-                    {featured.shortDescription}
-                  </p>
+            <div className="min-w-0">
+              <Card className="overflow-hidden">
+                <div className="relative aspect-[4/3] bg-slate-100">
+                  <Image
+                    src={featured.image}
+                    alt={featured.name}
+                    fill
+                    priority
+                    className="object-cover"
+                    sizes="(min-width: 1024px) 45vw, 100vw"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 to-transparent p-5 text-white">
+                    <Badge variant="secondary">Featured arrival</Badge>
+                    <h2 className="mt-3 text-2xl font-bold">{featured.name}</h2>
+                    <p className="mt-1 text-sm text-slate-100">
+                      {featured.shortDescription}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          </div>
+              </Card>
+            </div>
           ) : null}
         </div>
       </section>
@@ -121,15 +123,27 @@ export default async function HomePage({
       <section className="container-shell py-6" aria-label="Shop services">
         <div className="grid gap-3 md:grid-cols-4">
           {[
-            [MonitorSmartphone, "Dynamic specs", "Laptop, printer, monitor fields"],
-            [ShieldCheck, "Secure leads", "Server actions and RBAC checks"],
-            [Truck, "Stock aware", "Availability and price snapshots"],
-            [Clock3, "Retryable outbox", "Notification jobs after changes"],
+            [
+              MonitorSmartphone,
+              "Laptops & desktops",
+              "Systems for home, study, and office",
+            ],
+            [
+              ShieldCheck,
+              "Trusted guidance",
+              "Practical advice before you buy",
+            ],
+            [Truck, "Local availability", "Fresh stock and clear pricing"],
+            [Clock3, "Quick follow-up", "Best-price enquiries via WhatsApp"],
           ].map(([Icon, title, copy]) => (
             <div key={String(title)} className="rounded-lg border bg-white p-4">
               <Icon className="size-5 text-primary" aria-hidden="true" />
-              <p className="mt-3 font-semibold text-slate-950">{String(title)}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{String(copy)}</p>
+              <p className="mt-3 font-semibold text-slate-950">
+                {String(title)}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {String(copy)}
+              </p>
             </div>
           ))}
         </div>
@@ -146,8 +160,8 @@ export default async function HomePage({
               Browse products
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Search by name, SKU, brand, category, condition, and dynamic
-              specification fields as the database grows.
+              Search by name, SKU, brand, category, condition, and important
+              specifications.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -169,7 +183,9 @@ export default async function HomePage({
         <div className="mt-5 flex items-center justify-between gap-3 text-sm text-muted-foreground">
           <p>{products.length} matching products</p>
           <form>
-            {filters.q ? <input type="hidden" name="q" value={filters.q} /> : null}
+            {filters.q ? (
+              <input type="hidden" name="q" value={filters.q} />
+            ) : null}
             {filters.category ? (
               <input type="hidden" name="category" value={filters.category} />
             ) : null}

@@ -117,7 +117,10 @@ const settingsSchema = z.object({
   address: z.string().trim().min(5),
   currency: z.string().trim().min(3).max(3),
   timezone: z.string().trim().min(3),
+  primaryColor: z.string().regex(/^#[0-9a-f]{6}$/i),
+  secondaryColor: z.string().regex(/^#[0-9a-f]{6}$/i),
   defaultAttributionDays: z.coerce.number().int().positive(),
+  footerText: z.string().trim().min(10),
 });
 
 async function getOrCreateCategoryId(name: string) {
@@ -180,11 +183,13 @@ export async function createCategory(formData: FormData) {
   });
 
   if (hasDatabaseUrl) {
-    await getDb().insert(categories).values({
-      name: parsed.name,
-      slug: slugify(parsed.name),
-      description: parsed.description || null,
-    });
+    await getDb()
+      .insert(categories)
+      .values({
+        name: parsed.name,
+        slug: slugify(parsed.name),
+        description: parsed.description || null,
+      });
   }
 
   void actor;
@@ -196,10 +201,12 @@ export async function createBrand(formData: FormData) {
   const parsed = brandSchema.parse({ name: formData.get("name") });
 
   if (hasDatabaseUrl) {
-    await getDb().insert(brands).values({
-      name: parsed.name,
-      slug: slugify(parsed.name),
-    });
+    await getDb()
+      .insert(brands)
+      .values({
+        name: parsed.name,
+        slug: slugify(parsed.name),
+      });
   }
 
   revalidatePath("/admin/catalog/brands");
@@ -232,13 +239,15 @@ export async function createDealer(formData: FormData) {
       })
       .returning({ id: dealers.id });
 
-    await getDb().insert(auditLogs).values({
-      actorProfileId: actor.id,
-      action: "DEALER_CREATED",
-      entityType: "dealer",
-      entityId: dealer.id,
-      newValues: { referralCode, businessName: parsed.businessName },
-    });
+    await getDb()
+      .insert(auditLogs)
+      .values({
+        actorProfileId: actor.id,
+        action: "DEALER_CREATED",
+        entityType: "dealer",
+        entityId: dealer.id,
+        newValues: { referralCode, businessName: parsed.businessName },
+      });
   }
 
   revalidatePath("/admin/dealers");
@@ -260,16 +269,18 @@ export async function createSpecificationDefinition(formData: FormData) {
   if (hasDatabaseUrl) {
     const categoryId = await getOrCreateCategoryId(parsed.categoryName);
 
-    await getDb().insert(specificationDefinitions).values({
-      categoryId,
-      key: slugify(parsed.key).replaceAll("-", "_"),
-      label: parsed.label,
-      dataType: parsed.dataType,
-      unit: parsed.unit || null,
-      filterable: Boolean(parsed.filterable),
-      comparable: parsed.comparable ?? true,
-      required: Boolean(parsed.required),
-    });
+    await getDb()
+      .insert(specificationDefinitions)
+      .values({
+        categoryId,
+        key: slugify(parsed.key).replaceAll("-", "_"),
+        label: parsed.label,
+        dataType: parsed.dataType,
+        unit: parsed.unit || null,
+        filterable: Boolean(parsed.filterable),
+        comparable: parsed.comparable ?? true,
+        required: Boolean(parsed.required),
+      });
   }
 
   revalidatePath("/admin/catalog/specifications");
@@ -305,22 +316,22 @@ export async function createProduct(formData: FormData) {
     const [product] = await getDb()
       .insert(products)
       .values({
-      name: parsed.name,
-      slug: slugify(parsed.name),
-      sku: parsed.sku,
-      categoryId,
-      brandId,
-      shortDescription: parsed.shortDescription,
-      detailedDescription: parsed.detailedDescription || null,
-      condition: parsed.condition,
-      conditionGrade: parsed.conditionGrade || null,
-      regularPrice: String(parsed.regularPrice),
-      sellingPrice: String(parsed.sellingPrice),
-      stockQuantity: parsed.stockQuantity,
-      stockStatus: parsed.stockStatus,
-      warranty: parsed.warranty || null,
-      featured: Boolean(parsed.featured),
-      published: Boolean(parsed.published),
+        name: parsed.name,
+        slug: slugify(parsed.name),
+        sku: parsed.sku,
+        categoryId,
+        brandId,
+        shortDescription: parsed.shortDescription,
+        detailedDescription: parsed.detailedDescription || null,
+        condition: parsed.condition,
+        conditionGrade: parsed.conditionGrade || null,
+        regularPrice: String(parsed.regularPrice),
+        sellingPrice: String(parsed.sellingPrice),
+        stockQuantity: parsed.stockQuantity,
+        stockStatus: parsed.stockStatus,
+        warranty: parsed.warranty || null,
+        featured: Boolean(parsed.featured),
+        published: Boolean(parsed.published),
       })
       .returning({ id: products.id });
 
@@ -508,7 +519,10 @@ export async function recordSale(formData: FormData) {
       return [createdSale];
     });
 
-    await createCommissionForWonSale({ leadId: parsed.leadId, saleId: sale.id });
+    await createCommissionForWonSale({
+      leadId: parsed.leadId,
+      saleId: sale.id,
+    });
   }
 
   revalidatePath("/admin/sales");
@@ -525,7 +539,10 @@ export async function updateShopSettings(formData: FormData) {
     address: formData.get("address"),
     currency: formData.get("currency"),
     timezone: formData.get("timezone"),
+    primaryColor: formData.get("primaryColor"),
+    secondaryColor: formData.get("secondaryColor"),
     defaultAttributionDays: formData.get("defaultAttributionDays"),
+    footerText: formData.get("footerText"),
   });
 
   if (hasDatabaseUrl) {

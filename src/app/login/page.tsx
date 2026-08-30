@@ -1,6 +1,6 @@
-import { LockKeyhole } from "lucide-react";
 import Link from "next/link";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,12 +23,12 @@ export default async function LoginPage({
     <main className="grid min-h-screen place-items-center bg-slate-50 p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <div className="grid size-10 place-items-center rounded-md bg-primary text-primary-foreground">
-            <LockKeyhole className="size-5" aria-hidden="true" />
-          </div>
-          <CardTitle className="mt-4 text-2xl">Sign in</CardTitle>
+          <BrandLogo size="lg" priority />
+          <CardTitle className="mt-4 text-2xl">
+            Sign in to Computer House
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Use Supabase Auth credentials. Demo mode opens the owner dashboard.
+            Manage catalogue, enquiries, dealers, and sales.
           </p>
         </CardHeader>
         <CardContent>

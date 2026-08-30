@@ -15,7 +15,7 @@ export default async function AdminSettingsPage() {
   return (
     <AdminPageShell
       title="Shop settings"
-      description="Central white-label settings for business identity, contact details, currency, timezone, and referral attribution duration."
+      description="Manage business identity, contact details, brand colors, currency, timezone, and referral attribution duration."
     >
       <FormSection title="Business settings">
         <form action={updateShopSettings} className="grid gap-4">
@@ -38,7 +38,11 @@ export default async function AdminSettingsPage() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" name="phone" defaultValue={shopSettings.phone} />
+              <Input
+                id="phone"
+                name="phone"
+                defaultValue={shopSettings.phone}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="whatsappNumber">WhatsApp number</Label>
@@ -83,6 +87,24 @@ export default async function AdminSettingsPage() {
                 defaultValue={shopSettings.defaultAttributionDays}
               />
             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="primaryColor">Primary color</Label>
+              <Input
+                id="primaryColor"
+                name="primaryColor"
+                type="color"
+                defaultValue={shopSettings.primaryColor}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="secondaryColor">Secondary color</Label>
+              <Input
+                id="secondaryColor"
+                name="secondaryColor"
+                type="color"
+                defaultValue={shopSettings.secondaryColor}
+              />
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="address">Address</Label>
@@ -90,6 +112,14 @@ export default async function AdminSettingsPage() {
               id="address"
               name="address"
               defaultValue={shopSettings.address}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="footerText">Footer text</Label>
+            <Textarea
+              id="footerText"
+              name="footerText"
+              defaultValue={shopSettings.footerText}
             />
           </div>
           <Button type="submit">Save settings</Button>

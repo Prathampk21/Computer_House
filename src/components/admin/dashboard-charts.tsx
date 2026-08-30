@@ -22,7 +22,7 @@ import {
   leadsOverTime,
 } from "@/features/analytics/demo";
 
-const colors = ["#0f766e", "#f59e0b", "#2563eb", "#64748b"];
+const colors = ["#f80050", "#900030", "#2563eb", "#64748b"];
 
 export function AdminDashboardCharts() {
   return (
@@ -45,13 +45,13 @@ export function AdminDashboardCharts() {
               <Line
                 type="monotone"
                 dataKey="leads"
-                stroke="#0f766e"
+                stroke="#f80050"
                 strokeWidth={3}
               />
               <Line
                 type="monotone"
                 dataKey="sales"
-                stroke="#f59e0b"
+                stroke="#900030"
                 strokeWidth={3}
               />
             </LineChart>
@@ -102,8 +102,8 @@ export function AdminDashboardCharts() {
               <Tooltip />
               <Legend />
               <Bar dataKey="clicks" fill="#64748b" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="leads" fill="#0f766e" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="sales" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="leads" fill="#f80050" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="sales" fill="#900030" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

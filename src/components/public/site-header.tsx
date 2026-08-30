@@ -4,11 +4,11 @@ import {
   Heart,
   LayoutDashboard,
   Menu,
-  Monitor,
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { getShopSettings } from "@/features/shop/settings";
 
@@ -27,15 +27,13 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur">
       <div className="container-shell flex h-16 items-center justify-between gap-3">
         <Link href="/" className="flex min-w-0 items-center gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
-            <Monitor className="size-5" aria-hidden="true" />
-          </span>
+          <BrandLogo priority />
           <span className="min-w-0">
             <span className="block truncate text-sm font-bold text-slate-950 sm:text-base">
               {shopSettings.businessName}
             </span>
             <span className="hidden text-xs text-muted-foreground sm:block">
-              Catalogue, referrals, leads
+              Laptops, desktops, service
             </span>
           </span>
         </Link>
@@ -47,7 +45,12 @@ export async function SiteHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm" className="hidden sm:flex">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="hidden sm:flex"
+          >
             <Link href="/account">
               <UserRound className="size-4" aria-hidden="true" />
               Account
@@ -104,9 +107,12 @@ export async function SiteFooter() {
     <footer className="border-t bg-white">
       <div className="container-shell grid gap-6 py-8 text-sm text-muted-foreground md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <p className="font-semibold text-slate-900">
-            {shopSettings.businessName}
-          </p>
+          <div className="flex items-center gap-3">
+            <BrandLogo size="sm" />
+            <p className="font-semibold text-slate-900">
+              {shopSettings.businessName}
+            </p>
+          </div>
           <p className="mt-2 max-w-xl">{shopSettings.footerText}</p>
         </div>
         <div>
@@ -116,11 +122,21 @@ export async function SiteFooter() {
           <p className="mt-1">{shopSettings.address}</p>
         </div>
         <div>
-          <p className="font-semibold text-slate-900">White label</p>
-          <p className="mt-2">
-            Copy this project per client with an independent Supabase and Vercel
-            deployment.
-          </p>
+          <p className="font-semibold text-slate-900">Shop</p>
+          <div className="mt-2 grid gap-1">
+            <Link className="hover:text-primary" href="/">
+              Catalogue
+            </Link>
+            <Link className="hover:text-primary" href="/offers">
+              Offers
+            </Link>
+            <Link className="hover:text-primary" href="/compare">
+              Compare products
+            </Link>
+            <Link className="hover:text-primary" href="/enquiry">
+              Request best price
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

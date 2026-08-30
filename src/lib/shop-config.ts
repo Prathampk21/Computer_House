@@ -32,8 +32,8 @@ export const defaultShopSettings = {
     "2nd floor, Kamalkunj, near Sai Speciality Hospital, Shirala Naka, Islampur, Maharashtra, India",
   currency: process.env.SHOP_DEFAULT_CURRENCY ?? "INR",
   timezone: process.env.SHOP_DEFAULT_TIMEZONE ?? "Asia/Kolkata",
-  primaryColor: process.env.SHOP_PRIMARY_COLOR ?? "#0f766e",
-  secondaryColor: process.env.SHOP_SECONDARY_COLOR ?? "#f59e0b",
+  primaryColor: process.env.SHOP_PRIMARY_COLOR ?? "#f80050",
+  secondaryColor: process.env.SHOP_SECONDARY_COLOR ?? "#900030",
   defaultAttributionDays: Number(
     process.env.SHOP_DEFAULT_ATTRIBUTION_DAYS ?? 30,
   ),
@@ -43,5 +43,5 @@ export const defaultShopSettings = {
     youtube: "",
   },
   footerText:
-    "Independent white-label catalogue, dealer referral, and lead-management template.",
+    "Computer House helps customers choose the right laptop, desktop, printer, monitor, accessory, or refurbished system with local guidance and quick follow-up.",
 };

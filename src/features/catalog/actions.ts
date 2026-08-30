@@ -25,7 +25,7 @@ export async function updateProductPrice(input: {
       ok: true,
       demo: true,
       message:
-        "Demo mode: production deployments update product price, create product_change_events, and enqueue notification_jobs.",
+        "Database is not configured, so no live product price update was saved.",
     };
   }
 

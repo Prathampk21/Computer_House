@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 
 const adminNav = [
@@ -18,7 +19,11 @@ const adminNav = [
   { href: "/admin/crm/leads", label: "Leads", icon: UsersRound },
   { href: "/admin/dealers", label: "Dealers", icon: Handshake },
   { href: "/admin/sales", label: "Sales", icon: ShoppingBag },
-  { href: "/admin/marketing/notifications", label: "Marketing", icon: Megaphone },
+  {
+    href: "/admin/marketing/notifications",
+    label: "Marketing",
+    icon: Megaphone,
+  },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
@@ -36,11 +41,14 @@ export function AdminPageShell({
       <div className="border-b bg-white">
         <div className="container-shell py-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-950">{title}</h1>
-              <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-                {description}
-              </p>
+            <div className="flex items-start gap-3">
+              <BrandLogo className="mt-0.5" size="lg" />
+              <div>
+                <h1 className="text-3xl font-bold text-slate-950">{title}</h1>
+                <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+                  {description}
+                </p>
+              </div>
             </div>
             <Button asChild variant="outline">
               <Link href="/">View public catalogue</Link>

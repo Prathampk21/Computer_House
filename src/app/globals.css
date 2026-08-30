@@ -1,20 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
+  --background: #fff8fb;
   --foreground: #0f172a;
-  --muted: #e2e8f0;
+  --muted: #f7e3eb;
   --muted-foreground: #475569;
   --card: #ffffff;
   --card-foreground: #0f172a;
-  --border: #dbe3ea;
-  --primary: #0f766e;
+  --border: #ead6de;
+  --primary: #f80050;
+  --primary-hover: #d60045;
+  --primary-soft: #fff0f5;
+  --primary-soft-foreground: #900030;
   --primary-foreground: #ffffff;
-  --secondary: #f59e0b;
-  --secondary-foreground: #111827;
+  --secondary: #900030;
+  --secondary-hover: #720026;
+  --secondary-foreground: #ffffff;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --ring: #14b8a6;
+  --ring: #f80050;
 }
 
 @theme inline {
@@ -26,8 +30,12 @@
   --color-card-foreground: var(--card-foreground);
   --color-border: var(--border);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -54,8 +62,8 @@ textarea {
 }
 
 ::selection {
-  background: #99f6e4;
-  color: #134e4a;
+  background: var(--primary-soft);
+  color: var(--primary-soft-foreground);
 }
 
 .container-shell {
