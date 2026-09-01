@@ -20,6 +20,7 @@ import {
   shopSettings,
   specificationDefinitions,
 } from "@/db/schema";
+import { updateProductPrice } from "@/features/catalog/actions";
 import { createCommissionForWonSale } from "@/features/commissions/service";
 import { requireRole } from "@/lib/auth";
 import { hasDatabaseUrl } from "@/lib/env";
@@ -106,6 +107,12 @@ const saleSchema = z.object({
   quantity: z.coerce.number().int().positive().default(1),
   invoiceReference: z.string().trim().optional().or(z.literal("")),
   notes: z.string().trim().optional().or(z.literal("")),
+});
+
+const productPriceUpdateSchema = z.object({
+  productId: z.string().uuid(),
+  sellingPrice: z.coerce.number().nonnegative(),
+  reason: z.string().trim().max(500).optional().or(z.literal("")),
 });
 
 const settingsSchema = z.object({
@@ -345,6 +352,25 @@ export async function createProduct(formData: FormData) {
     }
   }
 
+  revalidatePath("/admin/catalog/products");
+}
+
+export async function updateProductPriceFromAdmin(formData: FormData) {
+  const parsed = productPriceUpdateSchema.parse({
+    productId: formData.get("productId"),
+    sellingPrice: formData.get("sellingPrice"),
+    reason: formData.get("reason"),
+  });
+
+  await updateProductPrice({
+    productId: parsed.productId,
+    newSellingPrice: parsed.sellingPrice.toFixed(2),
+    reason: parsed.reason || "Admin product price update.",
+  });
+
+  revalidatePath("/");
+  revalidatePath("/compare");
+  revalidatePath("/offers");
   revalidatePath("/admin/catalog/products");
 }
 

@@ -25,7 +25,7 @@ export const defaultShopSettings = {
   businessName: process.env.SHOP_DEFAULT_NAME ?? "Computer House",
   shortName: process.env.SHOP_DEFAULT_SHORT_NAME ?? "Computer House",
   phone: process.env.SHOP_DEFAULT_PHONE ?? "+91 70208 57227",
-  whatsappNumber: process.env.WHATSAPP_PHONE_NUMBER ?? "919876543210",
+  whatsappNumber: process.env.WHATSAPP_PHONE_NUMBER ?? "917391868111",
   email: process.env.SHOP_DEFAULT_EMAIL ?? "computerhouseisl@gmail.com",
   address:
     process.env.SHOP_DEFAULT_ADDRESS ??

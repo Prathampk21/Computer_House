@@ -81,7 +81,7 @@ export default async function HomePage({
               {[
                 ["Products", products.length.toString()],
                 ["Starting at", formatCurrency(1999, shopSettings.currency)],
-                ["Support", "WhatsApp ready"],
+                ["Support", "Quick follow-up"],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-lg border bg-slate-50 p-4">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -134,7 +134,11 @@ export default async function HomePage({
               "Practical advice before you buy",
             ],
             [Truck, "Local availability", "Fresh stock and clear pricing"],
-            [Clock3, "Quick follow-up", "Best-price enquiries via WhatsApp"],
+            [
+              Clock3,
+              "Quick follow-up",
+              "Best-price enquiries sent to our team",
+            ],
           ].map(([Icon, title, copy]) => (
             <div key={String(title)} className="rounded-lg border bg-white p-4">
               <Icon className="size-5 text-primary" aria-hidden="true" />

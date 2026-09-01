@@ -9,7 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Table, Td, Th } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { createProduct } from "@/features/admin/actions";
+import {
+  createProduct,
+  updateProductPriceFromAdmin,
+} from "@/features/admin/actions";
 import { listCatalogProducts } from "@/features/catalog/data";
 import { requireRole } from "@/lib/auth";
 import { formatCurrency } from "@/lib/utils";
@@ -57,15 +60,30 @@ export default async function AdminProductsPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="regularPrice">Regular price</Label>
-                <Input id="regularPrice" name="regularPrice" type="number" required />
+                <Input
+                  id="regularPrice"
+                  name="regularPrice"
+                  type="number"
+                  required
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="sellingPrice">Selling price</Label>
-                <Input id="sellingPrice" name="sellingPrice" type="number" required />
+                <Input
+                  id="sellingPrice"
+                  name="sellingPrice"
+                  type="number"
+                  required
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="stockQuantity">Stock quantity</Label>
-                <Input id="stockQuantity" name="stockQuantity" type="number" required />
+                <Input
+                  id="stockQuantity"
+                  name="stockQuantity"
+                  type="number"
+                  required
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="stockStatus">Stock status</Label>
@@ -80,7 +98,11 @@ export default async function AdminProductsPage() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="shortDescription">Short description</Label>
-              <Textarea id="shortDescription" name="shortDescription" required />
+              <Textarea
+                id="shortDescription"
+                name="shortDescription"
+                required
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="detailedDescription">Detailed description</Label>
@@ -104,7 +126,8 @@ export default async function AdminProductsPage() {
                 <input type="checkbox" name="featured" /> Featured
               </label>
               <label className="flex items-center gap-2">
-                <input type="checkbox" name="published" defaultChecked /> Published
+                <input type="checkbox" name="published" defaultChecked />{" "}
+                Published
               </label>
             </div>
             <Button type="submit">Create product</Button>
@@ -120,6 +143,7 @@ export default async function AdminProductsPage() {
                 <Th>Condition</Th>
                 <Th>Price</Th>
                 <Th>Status</Th>
+                <Th>Update price</Th>
               </tr>
             </thead>
             <tbody>
@@ -142,6 +166,36 @@ export default async function AdminProductsPage() {
                   </Td>
                   <Td>{formatCurrency(product.sellingPrice)}</Td>
                   <Td>{product.stockStatus.replaceAll("_", " ")}</Td>
+                  <Td>
+                    <form
+                      action={updateProductPriceFromAdmin}
+                      className="flex min-w-52 gap-2"
+                    >
+                      <input
+                        type="hidden"
+                        name="productId"
+                        value={product.id}
+                      />
+                      <input
+                        type="hidden"
+                        name="reason"
+                        value="Admin product price update."
+                      />
+                      <Input
+                        aria-label={`Selling price for ${product.name}`}
+                        className="w-28"
+                        min={0}
+                        name="sellingPrice"
+                        required
+                        step="0.01"
+                        type="number"
+                        defaultValue={product.sellingPrice}
+                      />
+                      <Button size="sm" type="submit">
+                        Save
+                      </Button>
+                    </form>
+                  </Td>
                 </tr>
               ))}
             </tbody>

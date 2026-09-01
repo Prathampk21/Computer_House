@@ -38,13 +38,17 @@ export default async function EnquiryPage({
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           This creates one lead with one or more lead items. Each item stores
-          product name, SKU, quantity, and price snapshots at enquiry time.
+          product name, SKU, quantity, and price snapshots for Computer House
+          follow-up.
         </p>
       </div>
       <Card className="mt-6 max-w-3xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <ShoppingBasket className="size-5 text-primary" aria-hidden="true" />
+            <ShoppingBasket
+              className="size-5 text-primary"
+              aria-hidden="true"
+            />
             Quote basket
           </CardTitle>
         </CardHeader>
@@ -79,7 +83,7 @@ export default async function EnquiryPage({
                 placeholder="Mention accessories, quantity, or delivery requirements."
               />
             </div>
-            <Button type="submit">Create quote lead and open WhatsApp</Button>
+            <Button type="submit">Submit quote request</Button>
           </form>
         </CardContent>
       </Card>

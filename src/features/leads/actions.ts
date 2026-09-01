@@ -10,13 +10,17 @@ import {
   leadItems,
   leads,
   leadStatusHistory,
+  notificationJobs,
   products as productsTable,
-  whatsappClickEvents,
 } from "@/db/schema";
 import { getProductBySlug } from "@/features/catalog/demo-data";
 import { getCurrentReferralContext } from "@/features/referrals/attribution";
 import { getShopSettings } from "@/features/shop/settings";
-import { productEnquirySchema, quoteRequestSchema } from "@/features/leads/validation";
+import {
+  productEnquirySchema,
+  quoteRequestSchema,
+} from "@/features/leads/validation";
+import { processNotificationJob } from "@/features/notifications/processor";
 import { hasDatabaseUrl } from "@/lib/env";
 
 function createLeadNumber() {
@@ -26,20 +30,28 @@ function createLeadNumber() {
 
 const duplicateWindowMs = 10 * 60 * 1000;
 
-function buildWhatsAppUrl(input: {
-  phoneNumber: string;
-  productName: string;
-  leadNumber: string;
-}) {
-  const message = [
-    `Hello, I am interested in ${input.productName}.`,
-    "",
-    `Enquiry Reference: ${input.leadNumber}`,
-    "",
-    "Please share your best price and availability.",
-  ].join("\n");
+function cleanPhoneNumber(phoneNumber: string) {
+  return phoneNumber.replace(/\D/g, "");
+}
 
-  return `https://wa.me/${input.phoneNumber}?text=${encodeURIComponent(message)}`;
+function shopNotificationChannel(): "WHATSAPP" | "IN_APP" {
+  return process.env.WHATSAPP_PROVIDER_WEBHOOK_URL ? "WHATSAPP" : "IN_APP";
+}
+
+function redirectToSuccess(leadNumber: string) {
+  redirect(`/enquiry/success?ref=${encodeURIComponent(leadNumber)}`);
+}
+
+async function dispatchShopNotification(jobId: string | null) {
+  if (!jobId || !process.env.WHATSAPP_PROVIDER_WEBHOOK_URL) {
+    return;
+  }
+
+  try {
+    await processNotificationJob(jobId);
+  } catch (error) {
+    console.error("Unable to dispatch shop WhatsApp notification", error);
+  }
 }
 
 export async function createProductEnquiry(formData: FormData) {
@@ -61,6 +73,9 @@ export async function createProductEnquiry(formData: FormData) {
     sku: parsed.sku,
     sellingPrice: parsed.sellingPrice,
   };
+  const shopSettings = await getShopSettings();
+  const shopRecipient = cleanPhoneNumber(shopSettings.whatsappNumber);
+  let notificationJobId: string | null = null;
 
   if (hasDatabaseUrl) {
     const db = getDb();
@@ -140,7 +155,7 @@ export async function createProductEnquiry(formData: FormData) {
           customerId: customer.id,
           dealerId: referralContext.dealerId,
           visitorSessionId: referralContext.visitorSessionId,
-          source: referralContext.dealerId ? "DEALER_REFERRAL" : "WHATSAPP",
+          source: referralContext.dealerId ? "DEALER_REFERRAL" : "WEBSITE",
           status: "NEW",
           message: parsed.message || null,
         })
@@ -158,27 +173,36 @@ export async function createProductEnquiry(formData: FormData) {
       await tx.insert(leadStatusHistory).values({
         leadId: lead.id,
         newStatus: "NEW",
-        note: "Lead created from public WhatsApp enquiry.",
+        note: "Lead created from public product enquiry.",
       });
 
-      await tx.insert(whatsappClickEvents).values({
-        productId: productSnapshot.id,
-        leadId: lead.id,
-        visitorSessionId: referralContext.visitorSessionId,
-        dealerId: referralContext.dealerId,
-      });
+      const [notificationJob] = await tx
+        .insert(notificationJobs)
+        .values({
+          recipient: shopRecipient,
+          channel: shopNotificationChannel(),
+          payload: {
+            eventType: "NEW_PRODUCT_ENQUIRY",
+            leadNumber,
+            customerName: parsed.name,
+            customerMobile: parsed.mobile,
+            customerEmail: parsed.email || null,
+            productName: productSnapshot.name,
+            sku: productSnapshot.sku,
+            sellingPrice: productSnapshot.sellingPrice,
+            message: parsed.message || null,
+            requestedChannel: "WHATSAPP",
+            shopWhatsAppNumber: shopRecipient,
+          },
+        })
+        .returning({ id: notificationJobs.id });
+
+      notificationJobId = notificationJob.id;
     });
   }
 
-  const shopSettings = await getShopSettings();
-
-  redirect(
-    buildWhatsAppUrl({
-      phoneNumber: shopSettings.whatsappNumber,
-      productName: productSnapshot.name,
-      leadNumber,
-    }),
-  );
+  await dispatchShopNotification(notificationJobId);
+  redirectToSuccess(leadNumber);
 }
 
 export async function createQuotationRequest(formData: FormData) {
@@ -201,6 +225,9 @@ export async function createQuotationRequest(formData: FormData) {
     demoProducts.length > 0
       ? demoProducts.map((product) => product!.name).join(", ")
       : "selected products";
+  const shopSettings = await getShopSettings();
+  const shopRecipient = cleanPhoneNumber(shopSettings.whatsappNumber);
+  let notificationJobId: string | null = null;
 
   if (hasDatabaseUrl) {
     const db = getDb();
@@ -296,16 +323,35 @@ export async function createQuotationRequest(formData: FormData) {
         newStatus: "NEW",
         note: "Quote request created from public enquiry basket.",
       });
+
+      const [notificationJob] = await tx
+        .insert(notificationJobs)
+        .values({
+          recipient: shopRecipient,
+          channel: shopNotificationChannel(),
+          payload: {
+            eventType: "NEW_QUOTE_REQUEST",
+            leadNumber,
+            customerName: parsed.name,
+            customerMobile: parsed.mobile,
+            customerEmail: parsed.email || null,
+            productName,
+            products: selectedProducts.map((product) => ({
+              name: product.name,
+              sku: product.sku,
+              sellingPrice: Number(product.sellingPrice),
+            })),
+            message: parsed.message || null,
+            requestedChannel: "WHATSAPP",
+            shopWhatsAppNumber: shopRecipient,
+          },
+        })
+        .returning({ id: notificationJobs.id });
+
+      notificationJobId = notificationJob.id;
     });
   }
 
-  const shopSettings = await getShopSettings();
-
-  redirect(
-    buildWhatsAppUrl({
-      phoneNumber: shopSettings.whatsappNumber,
-      productName,
-      leadNumber,
-    }),
-  );
+  await dispatchShopNotification(notificationJobId);
+  redirectToSuccess(leadNumber);
 }

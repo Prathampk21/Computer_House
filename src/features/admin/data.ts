@@ -159,7 +159,11 @@ export async function getAdminDashboardMetrics() {
   const clicksTotal = firstTotal(clickCount);
 
   return [
-    { label: "Total Products", value: String(productTotal), delta: "Live catalogue" },
+    {
+      label: "Total Products",
+      value: String(productTotal),
+      delta: "Live catalogue",
+    },
     {
       label: "In Stock",
       value: String(inStockTotal),
@@ -187,7 +191,11 @@ export async function getAdminDashboardMetrics() {
       value: String(firstTotal(dealerCount)),
       delta: `${firstTotal(activeDealerCount)} active`,
     },
-    { label: "Referral Clicks", value: String(clicksTotal), delta: "Clicks only" },
+    {
+      label: "Referral Clicks",
+      value: String(clicksTotal),
+      delta: "Clicks only",
+    },
     {
       label: "Qualified Leads",
       value: String(leadsTotal),
@@ -363,11 +371,16 @@ export async function listAdminSpecifications(): Promise<AdminSpecRow[]> {
       filterable: specificationDefinitions.filterable,
     })
     .from(specificationDefinitions)
-    .innerJoin(categories, eq(specificationDefinitions.categoryId, categories.id))
+    .innerJoin(
+      categories,
+      eq(specificationDefinitions.categoryId, categories.id),
+    )
     .orderBy(categories.name, specificationDefinitions.displayOrder);
 }
 
-export async function listAdminSubscriptions(): Promise<AdminSubscriptionRow[]> {
+export async function listAdminSubscriptions(): Promise<
+  AdminSubscriptionRow[]
+> {
   if (!hasDatabaseUrl) {
     return demoSubscriptions;
   }
@@ -410,6 +423,7 @@ export async function listAdminNotificationJobs(): Promise<
       channel: notificationJobs.channel,
       status: notificationJobs.status,
       attempts: notificationJobs.attempts,
+      payload: notificationJobs.payload,
       event: productChangeEvents.eventType,
     })
     .from(notificationJobs)
@@ -423,7 +437,11 @@ export async function listAdminNotificationJobs(): Promise<
     id: row.id,
     recipient: row.recipient,
     channel: row.channel,
-    event: row.event ?? "MANUAL",
+    event:
+      row.event ??
+      (typeof row.payload.eventType === "string"
+        ? row.payload.eventType
+        : "MANUAL"),
     status: row.status,
     attempts: row.attempts,
   }));

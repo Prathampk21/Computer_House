@@ -15,7 +15,7 @@ export default async function AdminNotificationsPage() {
   return (
     <AdminPageShell
       title="Notifications"
-      description="Notification jobs are queued after product-change events and processed outside product update transactions."
+      description="Notification jobs are queued for product changes and customer enquiries, then processed outside the main transaction."
     >
       <div className="mb-4">
         <Button asChild variant="outline">

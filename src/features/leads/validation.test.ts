@@ -6,7 +6,7 @@ import {
 } from "@/features/leads/validation";
 
 describe("lead validation", () => {
-  it("accepts a valid WhatsApp product enquiry", () => {
+  it("accepts a valid product enquiry", () => {
     const parsed = productEnquirySchema.parse({
       productSlug: "dell-latitude-5420-business-laptop",
       productName: "Dell Latitude 5420 Business Laptop",

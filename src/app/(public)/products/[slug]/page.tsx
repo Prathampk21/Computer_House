@@ -89,7 +89,9 @@ export default async function ProductPage({
         <div>
           <div className="flex flex-wrap gap-2">
             <Badge>{product.condition}</Badge>
-            <Badge variant="outline">{product.stockStatus.replaceAll("_", " ")}</Badge>
+            <Badge variant="outline">
+              {product.stockStatus.replaceAll("_", " ")}
+            </Badge>
             {product.offerText ? (
               <Badge variant="secondary">{product.offerText}</Badge>
             ) : null}
@@ -97,7 +99,9 @@ export default async function ProductPage({
           <h1 className="mt-4 text-3xl font-bold leading-tight text-slate-950 md:text-4xl">
             {product.name}
           </h1>
-          <p className="mt-3 text-muted-foreground">{product.shortDescription}</p>
+          <p className="mt-3 text-muted-foreground">
+            {product.shortDescription}
+          </p>
           <div className="mt-5 rounded-lg border bg-white p-4">
             <p className="text-3xl font-bold text-slate-950">
               {formatCurrency(product.sellingPrice, shopSettings.currency)}
@@ -111,7 +115,7 @@ export default async function ProductPage({
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <Button asChild>
-                <a href="#enquire">Enquire on WhatsApp</a>
+                <a href="#enquire">Send enquiry</a>
               </Button>
               <Button asChild variant="outline">
                 <Link href={`/compare?products=${product.slug}`}>Compare</Link>
@@ -125,7 +129,10 @@ export default async function ProductPage({
             <CardContent>
               <dl className="grid gap-3 sm:grid-cols-2">
                 {product.specs.map((spec) => (
-                  <div key={spec.key} className="rounded-md border bg-slate-50 p-3">
+                  <div
+                    key={spec.key}
+                    className="rounded-md border bg-slate-50 p-3"
+                  >
                     <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       {spec.label}
                     </dt>
@@ -148,7 +155,10 @@ export default async function ProductPage({
           <CardContent className="space-y-4 text-sm leading-6 text-muted-foreground">
             <p>{product.detailedDescription}</p>
             <p>
-              Warranty: <span className="font-medium text-slate-900">{product.warranty}</span>
+              Warranty:{" "}
+              <span className="font-medium text-slate-900">
+                {product.warranty}
+              </span>
             </p>
             <p>
               Stock:{" "}
@@ -161,7 +171,7 @@ export default async function ProductPage({
 
         <Card id="enquire">
           <CardHeader>
-            <CardTitle>Enquire on WhatsApp</CardTitle>
+            <CardTitle>Send product enquiry</CardTitle>
           </CardHeader>
           <CardContent>
             <form action={createProductEnquiry} className="grid gap-4">
@@ -175,16 +185,31 @@ export default async function ProductPage({
               />
               <div className="grid gap-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" required placeholder="Customer name" />
+                <Input
+                  id="name"
+                  name="name"
+                  required
+                  placeholder="Customer name"
+                />
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="mobile">Mobile number</Label>
-                  <Input id="mobile" name="mobile" required placeholder="9876543210" />
+                  <Input
+                    id="mobile"
+                    name="mobile"
+                    required
+                    placeholder="9876543210"
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email optional</Label>
-                  <Input id="email" name="email" type="email" placeholder="you@example.com" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="you@example.com"
+                  />
                 </div>
               </div>
               <div className="grid gap-2">
@@ -197,9 +222,9 @@ export default async function ProductPage({
               </div>
               <p className="text-xs text-muted-foreground">
                 Submitting creates a lead with price snapshot and current dealer
-                session attribution before opening WhatsApp.
+                session attribution for Computer House follow-up.
               </p>
-              <Button type="submit">Create enquiry and open WhatsApp</Button>
+              <Button type="submit">Submit enquiry</Button>
             </form>
           </CardContent>
         </Card>
@@ -213,7 +238,12 @@ export default async function ProductPage({
           <form action={createProductSubscription} className="grid gap-3">
             <input type="hidden" name="productSlug" value={product.slug} />
             <div className="grid gap-3 md:grid-cols-3">
-              <Input name="name" required placeholder="Name" aria-label="Name" />
+              <Input
+                name="name"
+                required
+                placeholder="Name"
+                aria-label="Name"
+              />
               <Input
                 name="mobile"
                 placeholder="Mobile"
@@ -268,7 +298,9 @@ export default async function ProductPage({
 
       {related.length > 0 ? (
         <section className="mt-10">
-          <h2 className="text-2xl font-bold text-slate-950">Related products</h2>
+          <h2 className="text-2xl font-bold text-slate-950">
+            Related products
+          </h2>
           <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((item) => (
               <ProductCard
