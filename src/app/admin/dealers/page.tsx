@@ -17,7 +17,7 @@ export default async function AdminDealersPage() {
   return (
     <AdminPageShell
       title="Dealers"
-      description="Create dealers, issue non-sequential referral codes, and keep referral analytics separate from leads."
+      description="Create dealer partners, issue referral links, and track their enquiries and commissions."
     >
       <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
         <FormSection title="Create dealer">

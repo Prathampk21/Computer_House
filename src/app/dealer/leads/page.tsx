@@ -11,7 +11,7 @@ export default async function DealerLeadsPage() {
   return (
     <DealerPageShell
       title="My leads"
-      description="Dealer views are filtered server-side to the authenticated dealer. Confidential admin-only notes are not shown here."
+      description="Track customer enquiries credited to your referral link and follow their current sales status."
     >
       <Card>
         <CardHeader>

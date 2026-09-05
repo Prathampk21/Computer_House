@@ -13,7 +13,8 @@ export default function AccessDeniedPage() {
           You do not have permission
         </h1>
         <p className="mt-3 text-muted-foreground">
-          Sensitive routes are checked server-side, not only hidden in the UI.
+          This account does not have access to that workspace. Please sign in
+          with an admin or dealer account.
         </p>
         <Button asChild className="mt-6" variant="outline">
           <Link href="/">Return to catalogue</Link>

@@ -49,7 +49,7 @@ export default async function AdminPage() {
               Admin dashboard
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Full shop control for a single independent client deployment.
+              Manage Computer House catalogue, enquiries, dealers, and sales.
             </p>
           </div>
         </div>

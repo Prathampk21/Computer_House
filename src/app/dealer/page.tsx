@@ -1,4 +1,4 @@
-import { BarChart3, HandCoins, Link2, UsersRound } from "lucide-react";
+import { BarChart3, HandCoins, Link2, Share2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand-logo";
 import { DealerQrCard } from "@/components/dealer/dealer-qr-card";
@@ -102,22 +102,23 @@ export default async function DealerPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Access boundaries</CardTitle>
+            <CardTitle>Dealer toolkit</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <p className="flex gap-3">
-              <UsersRound className="mt-0.5 size-4 shrink-0 text-primary" />
-              Dealer queries must filter by the authenticated dealer profile on
-              the server.
+              <Share2 className="mt-0.5 size-4 shrink-0 text-primary" />
+              Share your referral link with customers and use the QR code for
+              walk-in or field enquiries.
             </p>
             <p className="flex gap-3">
               <BarChart3 className="mt-0.5 size-4 shrink-0 text-primary" />
-              Referral clicks, unique visitors, product views, and enquiries
-              stay as separate metrics.
+              Track visits, product views, leads, and won enquiries connected to
+              your referral code.
             </p>
             <p className="flex gap-3">
               <HandCoins className="mt-0.5 size-4 shrink-0 text-primary" />
-              Commission eligibility starts only after a verified WON sale.
+              Review pending, approved, and paid commissions after Computer
+              House verifies the sale.
             </p>
           </CardContent>
         </Card>

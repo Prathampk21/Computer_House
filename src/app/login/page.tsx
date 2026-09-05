@@ -28,7 +28,7 @@ export default async function LoginPage({
             Sign in to Computer House
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Manage catalogue, enquiries, dealers, and sales.
+            Access the admin or dealer workspace.
           </p>
         </CardHeader>
         <CardContent>

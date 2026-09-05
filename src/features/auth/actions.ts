@@ -7,7 +7,7 @@ import { z } from "zod";
 import { getDb } from "@/db";
 import { profiles } from "@/db/schema";
 import { canBootstrapOwner } from "@/features/auth/bootstrap";
-import { isDemoMode } from "@/lib/env";
+import { hasDatabaseUrl, isDemoMode } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const bootstrapOwnerSchema = z.object({
@@ -29,10 +29,25 @@ export async function signInWithPassword(formData: FormData) {
     redirect("/login?error=missing-supabase");
   }
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (error) {
     redirect("/login?error=invalid-credentials");
+  }
+
+  if (data.user && hasDatabaseUrl) {
+    const [profile] = await getDb()
+      .select({ role: profiles.role })
+      .from(profiles)
+      .where(eq(profiles.authUserId, data.user.id))
+      .limit(1);
+
+    if (profile?.role === "DEALER") {
+      redirect("/dealer");
+    }
   }
 
   redirect("/admin");
