@@ -17,6 +17,7 @@ export type AuthProfile = {
   email: string;
   fullName: string;
   role: AppRole;
+  active: boolean;
 };
 
 const demoProfiles: Record<AppRole, AuthProfile> = {
@@ -26,6 +27,7 @@ const demoProfiles: Record<AppRole, AuthProfile> = {
     email: "owner@example.com",
     fullName: "Demo Owner",
     role: "OWNER",
+    active: true,
   },
   ADMIN: {
     id: "demo_admin",
@@ -33,6 +35,7 @@ const demoProfiles: Record<AppRole, AuthProfile> = {
     email: "admin@example.com",
     fullName: "Demo Admin",
     role: "ADMIN",
+    active: true,
   },
   STAFF: {
     id: "demo_staff",
@@ -40,6 +43,7 @@ const demoProfiles: Record<AppRole, AuthProfile> = {
     email: "staff@example.com",
     fullName: "Demo Staff",
     role: "STAFF",
+    active: true,
   },
   DEALER: {
     id: "demo_dealer",
@@ -47,6 +51,7 @@ const demoProfiles: Record<AppRole, AuthProfile> = {
     email: "dealer@example.com",
     fullName: "Dealer A",
     role: "DEALER",
+    active: true,
   },
   CUSTOMER: {
     id: "demo_customer",
@@ -54,6 +59,7 @@ const demoProfiles: Record<AppRole, AuthProfile> = {
     email: "customer@example.com",
     fullName: "Demo Customer",
     role: "CUSTOMER",
+    active: true,
   },
 };
 
@@ -78,12 +84,13 @@ export const getCurrentProfile = cache(async (): Promise<AuthProfile | null> => 
       email: profiles.email,
       fullName: profiles.fullName,
       role: profiles.role,
+      active: profiles.active,
     })
     .from(profiles)
     .where(eq(profiles.authUserId, user.id))
     .limit(1);
 
-  return profile ?? null;
+  return profile?.active ? profile : null;
 });
 
 export async function requireRole(allowedRoles: AppRole[]) {

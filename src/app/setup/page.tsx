@@ -1,5 +1,6 @@
 import { UserRoundPlus } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +23,10 @@ export default async function SetupPage({
   const configured = canBootstrapOwner();
   const ownerExists = await hasOwnerProfile();
 
+  if (ownerExists) {
+    redirect("/login");
+  }
+
   return (
     <main className="grid min-h-screen place-items-center bg-slate-50 p-6">
       <Card className="w-full max-w-md">
@@ -40,15 +45,6 @@ export default async function SetupPage({
               Supabase and database environment variables are required before
               setup can run.
             </p>
-          ) : ownerExists ? (
-            <div className="grid gap-3">
-              <p className="rounded-md border bg-slate-50 p-3 text-sm text-muted-foreground">
-                An owner profile already exists. Use the regular sign-in page.
-              </p>
-              <Button asChild>
-                <Link href="/login">Go to sign in</Link>
-              </Button>
-            </div>
           ) : (
             <form action={createBootstrapOwner} className="grid gap-4">
               {error ? (

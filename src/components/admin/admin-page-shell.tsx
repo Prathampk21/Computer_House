@@ -2,6 +2,7 @@ import {
   BarChart3,
   Boxes,
   Handshake,
+  LogOut,
   Megaphone,
   Settings,
   ShoppingBag,
@@ -12,6 +13,7 @@ import type { ReactNode } from "react";
 
 import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
+import { signOut } from "@/features/auth/actions";
 
 const adminNav = [
   { href: "/admin", label: "Dashboard", icon: BarChart3 },
@@ -50,9 +52,17 @@ export function AdminPageShell({
                 </p>
               </div>
             </div>
-            <Button asChild variant="outline">
-              <Link href="/">View public catalogue</Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline">
+                <Link href="/">View public catalogue</Link>
+              </Button>
+              <form action={signOut}>
+                <Button type="submit" variant="ghost">
+                  <LogOut className="size-4" aria-hidden="true" />
+                  Sign out
+                </Button>
+              </form>
+            </div>
           </div>
           <nav className="mt-5 flex gap-2 overflow-x-auto" aria-label="Admin">
             {adminNav.map((item) => (

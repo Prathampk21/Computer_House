@@ -1,3 +1,4 @@
+import { Pencil } from "lucide-react";
 import Link from "next/link";
 
 import { AdminPageShell } from "@/components/admin/admin-page-shell";
@@ -13,13 +14,21 @@ import {
   createProduct,
   updateProductPriceFromAdmin,
 } from "@/features/admin/actions";
-import { listCatalogProducts } from "@/features/catalog/data";
+import {
+  listAdminBrands,
+  listAdminCategories,
+  listAdminProducts,
+} from "@/features/admin/data";
 import { requireRole } from "@/lib/auth";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function AdminProductsPage() {
   await requireRole(["OWNER", "ADMIN", "STAFF"]);
-  const products = await listCatalogProducts();
+  const [products, categories, brands] = await Promise.all([
+    listAdminProducts(),
+    listAdminCategories(),
+    listAdminBrands(),
+  ]);
 
   return (
     <AdminPageShell
@@ -40,11 +49,29 @@ export default async function AdminProductsPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="categoryName">Category</Label>
-                <Input id="categoryName" name="categoryName" required />
+                <Select id="categoryName" name="categoryName" required>
+                  <option value="">Select category</option>
+                  {categories
+                    .filter((category) => category.active !== false)
+                    .map((category) => (
+                      <option key={category.id} value={category.name}>
+                        {category.name}
+                      </option>
+                    ))}
+                </Select>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="brandName">Brand</Label>
-                <Input id="brandName" name="brandName" required />
+                <Select id="brandName" name="brandName" required>
+                  <option value="">Select brand</option>
+                  {brands
+                    .filter((brand) => brand.active !== false)
+                    .map((brand) => (
+                      <option key={brand.id} value={brand.name}>
+                        {brand.name}
+                      </option>
+                    ))}
+                </Select>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="condition">Condition</Label>
@@ -143,7 +170,9 @@ export default async function AdminProductsPage() {
                 <Th>Condition</Th>
                 <Th>Price</Th>
                 <Th>Status</Th>
+                <Th>Visibility</Th>
                 <Th>Update price</Th>
+                <Th>Actions</Th>
               </tr>
             </thead>
             <tbody>
@@ -166,6 +195,11 @@ export default async function AdminProductsPage() {
                   </Td>
                   <Td>{formatCurrency(product.sellingPrice)}</Td>
                   <Td>{product.stockStatus.replaceAll("_", " ")}</Td>
+                  <Td>
+                    <Badge variant={product.published ? "default" : "outline"}>
+                      {product.published ? "Published" : "Draft"}
+                    </Badge>
+                  </Td>
                   <Td>
                     <form
                       action={updateProductPriceFromAdmin}
@@ -195,6 +229,14 @@ export default async function AdminProductsPage() {
                         Save
                       </Button>
                     </form>
+                  </Td>
+                  <Td>
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/admin/catalog/products/${product.id}`}>
+                        <Pencil className="size-4" aria-hidden="true" />
+                        Edit
+                      </Link>
+                    </Button>
                   </Td>
                 </tr>
               ))}

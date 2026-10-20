@@ -12,22 +12,10 @@ import {
 } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { Table, Td, Th } from "@/components/ui/table";
+import { parseProductSlugs } from "@/features/catalog/comparison";
 import { listCatalogProducts } from "@/features/catalog/data";
 import { getShopSettings } from "@/features/shop/settings";
 import { formatCurrency } from "@/lib/utils";
-
-function getProductSlugs(value?: string | string[]) {
-  const values = Array.isArray(value) ? value : value ? [value] : [];
-
-  return Array.from(
-    new Set(
-      values
-        .flatMap((item) => item.split(","))
-        .map((slug) => slug.trim())
-        .filter(Boolean),
-    ),
-  ).slice(0, 4);
-}
 
 export default async function ComparePage({
   searchParams,
@@ -35,7 +23,7 @@ export default async function ComparePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const slugs = getProductSlugs(params.products);
+  const slugs = parseProductSlugs(params.products);
   const [products, shopSettings] = await Promise.all([
     listCatalogProducts(),
     getShopSettings(),
@@ -162,11 +150,23 @@ export default async function ComparePage({
           </CardContent>
         </Card>
       ) : (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Comparison table</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <>
+          <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+            <Button asChild>
+              <Link
+                href={`/enquiry?products=${selected
+                  .map((product) => product.slug)
+                  .join(",")}`}
+              >
+                Request best price for selected products
+              </Link>
+            </Button>
+          </div>
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Comparison table</CardTitle>
+            </CardHeader>
+            <CardContent>
             <Table>
               <thead>
                 <tr>
@@ -215,8 +215,9 @@ export default async function ComparePage({
                 </tr>
               </tbody>
             </Table>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

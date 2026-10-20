@@ -8,6 +8,7 @@ const catalogModules = [
   ["Products", "/admin/catalog/products", "Add, edit, publish, price, inventory"],
   ["Categories", "/admin/catalog/categories", "Main categories and subcategories"],
   ["Brands", "/admin/catalog/brands", "Brand list and logos"],
+  ["Offers", "/admin/catalog/offers", "Time-bound product promotions"],
   [
     "Specification Definitions",
     "/admin/catalog/specifications",

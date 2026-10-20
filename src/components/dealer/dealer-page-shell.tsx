@@ -1,9 +1,10 @@
-import { BarChart3, HandCoins, Link2, ListChecks } from "lucide-react";
+import { BarChart3, HandCoins, Link2, ListChecks, LogOut } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
+import { signOut } from "@/features/auth/actions";
 
 const dealerNav = [
   { href: "/dealer", label: "Dashboard", icon: BarChart3 },
@@ -34,12 +35,20 @@ export function DealerPageShell({
                 </p>
               </div>
             </div>
-            <Button asChild variant="outline">
-              <Link href="/">
-                <Link2 className="size-4" aria-hidden="true" />
-                Catalogue
-              </Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline">
+                <Link href="/">
+                  <Link2 className="size-4" aria-hidden="true" />
+                  Catalogue
+                </Link>
+              </Button>
+              <form action={signOut}>
+                <Button type="submit" variant="ghost">
+                  <LogOut className="size-4" aria-hidden="true" />
+                  Sign out
+                </Button>
+              </form>
+            </div>
           </div>
           <nav className="mt-5 flex gap-2 overflow-x-auto" aria-label="Dealer">
             {dealerNav.map((item) => (

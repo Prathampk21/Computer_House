@@ -54,7 +54,7 @@ type ProductRow = {
   createdAt: Date;
 };
 
-function imageUrl(path: string | null) {
+export function resolveProductImageUrl(path: string | null) {
   if (!path) {
     return demoProducts[0]?.image ?? "/file.svg";
   }
@@ -295,7 +295,7 @@ async function mapDbProducts(rows: ProductRow[]): Promise<CatalogProduct[]> {
     offerText: offersByProduct.get(row.id),
     shortDescription: row.shortDescription,
     detailedDescription: row.detailedDescription ?? row.shortDescription,
-    image: imageUrl(row.image),
+    image: resolveProductImageUrl(row.image),
     specs: specsByProduct.get(row.id) ?? [],
     views: stats.views.get(row.id) ?? 0,
     enquiries: stats.enquiries.get(row.id) ?? 0,
@@ -318,7 +318,7 @@ export async function listCatalogOptions() {
       .from(brands)
       .where(eq(brands.active, true))
       .orderBy(brands.name),
-  ]).catch(() => [[], []] as const);
+  ]);
 
   return {
     categories: categoryRows.map((row) => row.name),
@@ -331,12 +331,8 @@ export async function listCatalogProducts(filters: CatalogFilters = {}) {
     return applyFilters(demoProducts, filters);
   }
 
-  try {
-    const productsList = await mapDbProducts(await dbProductRows());
-    return applyFilters(productsList, filters);
-  } catch {
-    return applyFilters(demoProducts, filters);
-  }
+  const productsList = await mapDbProducts(await dbProductRows());
+  return applyFilters(productsList, filters);
 }
 
 export async function listFeaturedProducts() {
@@ -351,7 +347,7 @@ export async function getCatalogProductBySlug(slug: string) {
 
   const productsList = await mapDbProducts(
     (await dbProductRows()).filter((product) => product.slug === slug),
-  ).catch(() => []);
+  );
 
   return productsList[0] ?? null;
 }
@@ -365,12 +361,10 @@ export async function getCatalogProductsBySlugs(slugs: string[]) {
       .filter((product): product is CatalogProduct => Boolean(product));
   }
 
-  const rows = await dbProductRows()
-    .then((products) =>
-      products.filter((product) => uniqueSlugs.includes(product.slug)),
-    )
-    .catch(() => []);
-  const productsList = await mapDbProducts(rows).catch(() => []);
+  const rows = (await dbProductRows()).filter((product) =>
+    uniqueSlugs.includes(product.slug),
+  );
+  const productsList = await mapDbProducts(rows);
 
   return uniqueSlugs
     .map((slug) => productsList.find((product) => product.slug === slug))
@@ -386,7 +380,7 @@ export async function getRelatedCatalogProducts(product: CatalogProduct) {
 
 export async function getDefaultCatalogProduct() {
   const productsList = await listCatalogProducts();
-  return productsList[0] ?? demoProducts[0] ?? null;
+  return productsList[0] ?? null;
 }
 
 export async function listOfferProducts() {

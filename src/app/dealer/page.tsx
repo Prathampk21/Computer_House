@@ -1,10 +1,12 @@
-import { BarChart3, HandCoins, Link2, Share2 } from "lucide-react";
+import { BarChart3, HandCoins, Link2, LogOut, Share2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand-logo";
 import { DealerQrCard } from "@/components/dealer/dealer-qr-card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, Td, Th } from "@/components/ui/table";
+import { signOut } from "@/features/auth/actions";
 import {
   getCurrentDealerMetrics,
   listCurrentDealerLeads,
@@ -26,21 +28,29 @@ export default async function DealerPage() {
     <main className="min-h-screen bg-slate-50">
       <div className="border-b bg-white">
         <div className="container-shell py-6">
-          <div className="flex items-start gap-3">
-            <BrandLogo size="lg" />
-            <div>
-              <Badge>
-                <Link2 className="mr-1 size-3.5" aria-hidden="true" />
-                {dealer.referralCode}
-              </Badge>
-              <h1 className="mt-3 text-3xl font-bold text-slate-950">
-                Dealer dashboard
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                Share your referral link and track the enquiries, visits, and
-                commissions connected to your account.
-              </p>
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="flex items-start gap-3">
+              <BrandLogo size="lg" />
+              <div>
+                <Badge>
+                  <Link2 className="mr-1 size-3.5" aria-hidden="true" />
+                  {dealer.referralCode}
+                </Badge>
+                <h1 className="mt-3 text-3xl font-bold text-slate-950">
+                  Dealer dashboard
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                  Share your referral link and track the enquiries, visits, and
+                  commissions connected to your account.
+                </p>
+              </div>
             </div>
+            <form action={signOut}>
+              <Button type="submit" variant="outline">
+                <LogOut className="size-4" aria-hidden="true" />
+                Sign out
+              </Button>
+            </form>
           </div>
         </div>
       </div>

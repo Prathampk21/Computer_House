@@ -1,6 +1,7 @@
 import "server-only";
 
 import { eq } from "drizzle-orm";
+import { connection } from "next/server";
 import { z } from "zod";
 
 import { getDb } from "@/db";
@@ -39,12 +40,13 @@ export async function getShopSettings(): Promise<ShopSettings> {
     return defaultShopSettings;
   }
 
+  await connection();
+
   const [row] = await getDb()
     .select({ value: shopSettings.value })
     .from(shopSettings)
     .where(eq(shopSettings.key, "business"))
-    .limit(1)
-    .catch(() => []);
+    .limit(1);
 
   if (!row) {
     return defaultShopSettings;

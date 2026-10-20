@@ -1,10 +1,11 @@
 import "server-only";
 
-import { and, count, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 
 import { getDb } from "@/db";
 import {
   commissions,
+  commissionPayouts,
   dealers,
   leadItems,
   leads,
@@ -123,6 +124,34 @@ export async function listCurrentDealerCommissions() {
     .from(commissions)
     .innerJoin(leads, eq(commissions.leadId, leads.id))
     .where(eq(commissions.dealerId, dealer.id));
+}
+
+export async function listCurrentDealerPayouts() {
+  const { dealer } = await requireCurrentDealer();
+
+  if (!hasDatabaseUrl || dealer.id === "dealer_a") {
+    return [
+      {
+        id: "pay_001",
+        amount: "3245",
+        paymentReference: "UPI-DEMO-001",
+        paidAt: new Date("2026-01-15T10:00:00.000Z"),
+        notes: "Demo payout",
+      },
+    ];
+  }
+
+  return getDb()
+    .select({
+      id: commissionPayouts.id,
+      amount: commissionPayouts.amount,
+      paymentReference: commissionPayouts.paymentReference,
+      paidAt: commissionPayouts.paidAt,
+      notes: commissionPayouts.notes,
+    })
+    .from(commissionPayouts)
+    .where(eq(commissionPayouts.dealerId, dealer.id))
+    .orderBy(desc(commissionPayouts.paidAt), desc(commissionPayouts.createdAt));
 }
 
 export async function getCurrentDealerMetrics() {

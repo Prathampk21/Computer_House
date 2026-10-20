@@ -17,6 +17,9 @@ export default async function LoginPage({
   const params = await searchParams;
   const error = Array.isArray(params.error) ? params.error[0] : params.error;
   const setup = Array.isArray(params.setup) ? params.setup[0] : params.setup;
+  const password = Array.isArray(params.password)
+    ? params.password[0]
+    : params.password;
   const ownerExists = await hasOwnerProfile();
 
   return (
@@ -36,7 +39,9 @@ export default async function LoginPage({
             <p className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               {error === "missing-supabase"
                 ? "Supabase environment variables are not configured."
-                : "Invalid credentials."}
+                : error === "inactive-account"
+                  ? "This account is inactive. Contact Computer House for access."
+                  : "Invalid credentials."}
             </p>
           ) : null}
           {setup ? (
@@ -44,6 +49,11 @@ export default async function LoginPage({
               {setup === "created"
                 ? "Owner profile created. Sign in with the password you chose."
                 : "Owner profile already exists."}
+            </p>
+          ) : null}
+          {password === "updated" ? (
+            <p className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+              Password updated. Sign in with your new password.
             </p>
           ) : null}
           <form action={signInWithPassword} className="grid gap-4">
@@ -69,6 +79,11 @@ export default async function LoginPage({
             </div>
             <Button type="submit">Continue</Button>
           </form>
+          {!isDemoMode ? (
+            <Button asChild className="mt-3 w-full" variant="ghost">
+              <Link href="/forgot-password">Forgot password?</Link>
+            </Button>
+          ) : null}
           {!ownerExists ? (
             <Button asChild className="mt-3 w-full" variant="outline">
               <Link href="/setup">Create first owner</Link>

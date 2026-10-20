@@ -2,7 +2,7 @@
 
 import { nanoid } from "nanoid";
 import { redirect } from "next/navigation";
-import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray } from "drizzle-orm";
 
 import { getDb } from "@/db";
 import {
@@ -22,6 +22,7 @@ import {
 } from "@/features/leads/validation";
 import { processNotificationJob } from "@/features/notifications/processor";
 import { hasDatabaseUrl } from "@/lib/env";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 function createLeadNumber() {
   const year = new Date().getFullYear();
@@ -29,9 +30,36 @@ function createLeadNumber() {
 }
 
 const duplicateWindowMs = 10 * 60 * 1000;
+const rateLimitWindowMs = 15 * 60 * 1000;
+const maxEnquiriesPerWindow = 5;
 
 function cleanPhoneNumber(phoneNumber: string) {
   return phoneNumber.replace(/\D/g, "");
+}
+
+function assertHoneypotIsEmpty(formData: FormData) {
+  if (String(formData.get("website") ?? "").trim()) {
+    throw new Error("Unable to submit this enquiry.");
+  }
+}
+
+async function enforceEnquiryRateLimit(mobile: string) {
+  if (!hasDatabaseUrl) return;
+
+  const [row] = await getDb()
+    .select({ total: count(leads.id) })
+    .from(leads)
+    .innerJoin(customers, eq(leads.customerId, customers.id))
+    .where(
+      and(
+        eq(customers.mobile, mobile),
+        gte(leads.createdAt, new Date(Date.now() - rateLimitWindowMs)),
+      ),
+    );
+
+  if (Number(row?.total ?? 0) >= maxEnquiriesPerWindow) {
+    throw new Error("Too many enquiries were submitted. Please try again later.");
+  }
 }
 
 function shopNotificationChannel(): "WHATSAPP" | "IN_APP" {
@@ -55,6 +83,11 @@ async function dispatchShopNotification(jobId: string | null) {
 }
 
 export async function createProductEnquiry(formData: FormData) {
+  assertHoneypotIsEmpty(formData);
+  await verifyTurnstileToken(
+    String(formData.get("cf-turnstile-response") ?? ""),
+    "product_enquiry",
+  );
   const parsed = productEnquirySchema.parse({
     productSlug: formData.get("productSlug"),
     productName: formData.get("productName"),
@@ -65,6 +98,10 @@ export async function createProductEnquiry(formData: FormData) {
     email: formData.get("email"),
     message: formData.get("message"),
   });
+  const mobile = cleanPhoneNumber(parsed.mobile);
+
+  if (mobile.length < 8) throw new Error("Enter a valid mobile number.");
+  await enforceEnquiryRateLimit(mobile);
   const referralContext = await getCurrentReferralContext();
   let leadNumber = createLeadNumber();
   let productSnapshot = {
@@ -105,7 +142,7 @@ export async function createProductEnquiry(formData: FormData) {
       const [existingCustomer] = await tx
         .select({ id: customers.id })
         .from(customers)
-        .where(eq(customers.mobile, parsed.mobile))
+        .where(eq(customers.mobile, mobile))
         .limit(1);
 
       const [customer] = existingCustomer
@@ -122,7 +159,7 @@ export async function createProductEnquiry(formData: FormData) {
             .insert(customers)
             .values({
               name: parsed.name,
-              mobile: parsed.mobile,
+              mobile,
               email: parsed.email || null,
               notificationConsent: false,
             })
@@ -185,7 +222,7 @@ export async function createProductEnquiry(formData: FormData) {
             eventType: "NEW_PRODUCT_ENQUIRY",
             leadNumber,
             customerName: parsed.name,
-            customerMobile: parsed.mobile,
+            customerMobile: mobile,
             customerEmail: parsed.email || null,
             productName: productSnapshot.name,
             sku: productSnapshot.sku,
@@ -206,6 +243,11 @@ export async function createProductEnquiry(formData: FormData) {
 }
 
 export async function createQuotationRequest(formData: FormData) {
+  assertHoneypotIsEmpty(formData);
+  await verifyTurnstileToken(
+    String(formData.get("cf-turnstile-response") ?? ""),
+    "quote_request",
+  );
   const productSlugs = String(formData.get("productSlugs") ?? "")
     .split(",")
     .map((slug) => slug.trim())
@@ -217,6 +259,10 @@ export async function createQuotationRequest(formData: FormData) {
     email: formData.get("email"),
     message: formData.get("message"),
   });
+  const mobile = cleanPhoneNumber(parsed.mobile);
+
+  if (mobile.length < 8) throw new Error("Enter a valid mobile number.");
+  await enforceEnquiryRateLimit(mobile);
   const demoProducts = parsed.productSlugs
     .map((slug) => getProductBySlug(slug))
     .filter(Boolean);
@@ -253,7 +299,7 @@ export async function createQuotationRequest(formData: FormData) {
       const [existingCustomer] = await tx
         .select({ id: customers.id })
         .from(customers)
-        .where(eq(customers.mobile, parsed.mobile))
+        .where(eq(customers.mobile, mobile))
         .limit(1);
 
       const [customer] = existingCustomer
@@ -270,7 +316,7 @@ export async function createQuotationRequest(formData: FormData) {
             .insert(customers)
             .values({
               name: parsed.name,
-              mobile: parsed.mobile,
+              mobile,
               email: parsed.email || null,
               notificationConsent: false,
             })
@@ -333,7 +379,7 @@ export async function createQuotationRequest(formData: FormData) {
             eventType: "NEW_QUOTE_REQUEST",
             leadNumber,
             customerName: parsed.name,
-            customerMobile: parsed.mobile,
+            customerMobile: mobile,
             customerEmail: parsed.email || null,
             productName,
             products: selectedProducts.map((product) => ({

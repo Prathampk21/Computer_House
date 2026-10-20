@@ -2,11 +2,17 @@ import { DealerPageShell } from "@/components/dealer/dealer-page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, Td, Th } from "@/components/ui/table";
-import { listCurrentDealerCommissions } from "@/features/dealers/data";
+import {
+  listCurrentDealerCommissions,
+  listCurrentDealerPayouts,
+} from "@/features/dealers/data";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function DealerCommissionsPage() {
-  const commissions = await listCurrentDealerCommissions();
+  const [commissions, payouts] = await Promise.all([
+    listCurrentDealerCommissions(),
+    listCurrentDealerPayouts(),
+  ]);
 
   return (
     <DealerPageShell
@@ -50,6 +56,45 @@ export default async function DealerCommissionsPage() {
                   </Td>
                 </tr>
               ))}
+            </tbody>
+          </Table>
+        </CardContent>
+      </Card>
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Payout history</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <thead>
+              <tr>
+                <Th>Paid date</Th>
+                <Th>Amount</Th>
+                <Th>Payment reference</Th>
+                <Th>Note</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {payouts.length > 0 ? (
+                payouts.map((payout) => (
+                  <tr key={payout.id}>
+                    <Td>
+                      {payout.paidAt
+                        ? new Intl.DateTimeFormat("en-IN", {
+                            dateStyle: "medium",
+                          }).format(payout.paidAt)
+                        : "Pending"}
+                    </Td>
+                    <Td>{formatCurrency(Number(payout.amount))}</Td>
+                    <Td>{payout.paymentReference ?? "-"}</Td>
+                    <Td>{payout.notes ?? "-"}</Td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <Td colSpan={4}>No payouts have been recorded yet.</Td>
+                </tr>
+              )}
             </tbody>
           </Table>
         </CardContent>

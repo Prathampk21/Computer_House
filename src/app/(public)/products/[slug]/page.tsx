@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { ProductViewTracker } from "@/components/analytics/event-trackers";
 import { ProductCard } from "@/components/public/product-card";
+import { TurnstileField } from "@/components/public/turnstile-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -175,6 +176,10 @@ export default async function ProductPage({
           </CardHeader>
           <CardContent>
             <form action={createProductEnquiry} className="grid gap-4">
+              <div className="absolute -left-[10000px]" aria-hidden="true">
+                <Label htmlFor="website">Website</Label>
+                <Input id="website" name="website" tabIndex={-1} autoComplete="off" />
+              </div>
               <input type="hidden" name="productSlug" value={product.slug} />
               <input type="hidden" name="productName" value={product.name} />
               <input type="hidden" name="sku" value={product.sku} />
@@ -224,6 +229,7 @@ export default async function ProductPage({
                 Submitting creates a lead with price snapshot and current dealer
                 session attribution for Computer House follow-up.
               </p>
+              <TurnstileField action="product_enquiry" />
               <Button type="submit">Submit enquiry</Button>
             </form>
           </CardContent>

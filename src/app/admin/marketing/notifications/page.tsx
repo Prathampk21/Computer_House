@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, Td, Th } from "@/components/ui/table";
 import { listAdminNotificationJobs } from "@/features/admin/data";
+import { retryNotificationJob } from "@/features/notifications/actions";
 import { requireRole } from "@/lib/auth";
 
 export default async function AdminNotificationsPage() {
@@ -31,6 +32,8 @@ export default async function AdminNotificationsPage() {
               <Th>Event</Th>
               <Th>Status</Th>
               <Th>Attempts</Th>
+              <Th>Result</Th>
+              <Th>Action</Th>
             </tr>
           </thead>
           <tbody>
@@ -53,6 +56,22 @@ export default async function AdminNotificationsPage() {
                   </Badge>
                 </Td>
                 <Td>{job.attempts}</Td>
+                <Td className="max-w-80 text-xs text-muted-foreground">
+                  {job.errorMessage ??
+                    (job.sentAt
+                      ? `Sent ${job.sentAt.toLocaleString("en-IN")}`
+                      : `Queued ${job.createdAt.toLocaleString("en-IN")}`)}
+                </Td>
+                <Td>
+                  {job.status === "FAILED" ? (
+                    <form action={retryNotificationJob}>
+                      <input type="hidden" name="jobId" value={job.id} />
+                      <Button type="submit" size="sm" variant="outline">Retry</Button>
+                    </form>
+                  ) : (
+                    "-"
+                  )}
+                </Td>
               </tr>
             ))}
           </tbody>

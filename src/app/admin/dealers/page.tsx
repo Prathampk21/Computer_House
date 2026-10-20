@@ -1,3 +1,6 @@
+import { Pencil } from "lucide-react";
+import Link from "next/link";
+
 import { AdminPageShell } from "@/components/admin/admin-page-shell";
 import { FormSection } from "@/components/admin/form-section";
 import { Badge } from "@/components/ui/badge";
@@ -36,9 +39,19 @@ export default async function AdminDealersPage() {
                 <Input id="mobile" name="mobile" required />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="email">Email optional</Label>
-                <Input id="email" name="email" type="email" />
+                <Label htmlFor="email">Login email</Label>
+                <Input id="email" name="email" type="email" required />
               </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="temporaryPassword">Temporary password</Label>
+              <Input
+                id="temporaryPassword"
+                name="temporaryPassword"
+                type="password"
+                minLength={10}
+                required
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="commissionValue">Default commission %</Label>
@@ -62,6 +75,8 @@ export default async function AdminDealersPage() {
                 <Th>Mobile</Th>
                 <Th>Referral URL</Th>
                 <Th>Status</Th>
+                <Th>Login</Th>
+                <Th>Actions</Th>
               </tr>
             </thead>
             <tbody>
@@ -82,6 +97,19 @@ export default async function AdminDealersPage() {
                   </Td>
                   <Td>
                     <Badge>{dealer.active ? "Active" : "Inactive"}</Badge>
+                  </Td>
+                  <Td>
+                    <Badge variant={dealer.hasLogin ? "default" : "outline"}>
+                      {dealer.hasLogin ? "Linked" : "Missing"}
+                    </Badge>
+                  </Td>
+                  <Td>
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/admin/dealers/${dealer.id}`}>
+                        <Pencil className="size-4" aria-hidden="true" />
+                        Manage
+                      </Link>
+                    </Button>
                   </Td>
                 </tr>
               ))}

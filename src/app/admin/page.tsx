@@ -2,6 +2,7 @@ import {
   Boxes,
   ClipboardList,
   HandCoins,
+  LogOut,
   Settings,
   ShieldCheck,
   Store,
@@ -10,12 +11,14 @@ import {
 
 import { AdminDashboardCharts } from "@/components/admin/dashboard-charts";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, Td, Th } from "@/components/ui/table";
 import {
   getAdminDashboardMetrics,
   listAdminLeads,
 } from "@/features/admin/data";
+import { signOut } from "@/features/auth/actions";
 import { requireRole } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -52,6 +55,12 @@ export default async function AdminPage() {
               Manage Computer House catalogue, enquiries, dealers, and sales.
             </p>
           </div>
+          <form action={signOut}>
+            <Button type="submit" variant="outline">
+              <LogOut className="size-4" aria-hidden="true" />
+              Sign out
+            </Button>
+          </form>
         </div>
       </div>
       <div className="container-shell py-6">

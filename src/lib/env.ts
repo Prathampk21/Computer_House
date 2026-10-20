@@ -5,6 +5,11 @@ export const hasSupabaseBrowserConfig = Boolean(
 
 export const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
 
+export const hasSupabaseAdminConfig = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+);
+
 export const isDemoMode =
   process.env.APP_DEMO_MODE === "true" ||
   (!hasSupabaseBrowserConfig && process.env.NODE_ENV !== "production");

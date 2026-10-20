@@ -7,14 +7,20 @@ import {
   brands,
   categories,
   commissions,
+  commissionPayouts,
   customerSubscriptions,
   customers,
   dealers,
   leadItems,
+  leadNotes,
+  leadStatusHistory,
   leads,
   notificationJobs,
   productChangeEvents,
+  productImages,
+  productSpecificationValues,
   products,
+  profiles,
   referralClicks,
   sales,
   specificationDefinitions,
@@ -44,6 +50,78 @@ export type AdminLeadRow = {
   source: string;
   status: string;
   amount: string | number;
+  createdAt?: Date;
+  saleRecorded?: boolean;
+};
+
+export type AdminSaleRow = {
+  id: string;
+  leadNumber: string;
+  customer: string;
+  dealer: string;
+  amount: string;
+  invoiceReference: string | null;
+  saleDate: Date;
+};
+
+export type AdminCommissionRow = {
+  id: string;
+  leadNumber: string;
+  dealer: string;
+  baseSaleAmount: string;
+  commissionValue: string;
+  finalAmount: string;
+  status: string;
+  createdAt: Date;
+};
+
+export type AdminPayoutRow = {
+  id: string;
+  dealer: string;
+  amount: string;
+  paymentReference: string | null;
+  paidAt: Date | null;
+};
+
+export type AdminLeadDetail = {
+  id: string;
+  leadNumber: string;
+  status: string;
+  source: string;
+  message: string | null;
+  createdAt: Date;
+  customer: {
+    name: string;
+    mobile: string;
+    email: string | null;
+  };
+  dealer: {
+    id: string;
+    businessName: string;
+  } | null;
+  items: Array<{
+    id: string;
+    productId: string | null;
+    productName: string;
+    sku: string;
+    price: string;
+    quantity: number;
+  }>;
+  history: Array<{
+    id: string;
+    previousStatus: string | null;
+    newStatus: string;
+    note: string | null;
+    changedBy: string | null;
+    createdAt: Date;
+  }>;
+  notes: Array<{
+    id: string;
+    note: string;
+    dealerVisible: boolean;
+    author: string | null;
+    createdAt: Date;
+  }>;
 };
 
 export type AdminDealerRow = {
@@ -55,6 +133,13 @@ export type AdminDealerRow = {
   email: string | null;
   active: boolean;
   commissionValue: string | number | null;
+  hasLogin: boolean;
+};
+
+export type AdminDealerDetail = AdminDealerRow & {
+  referralClicks: number;
+  leads: number;
+  commissions: number;
 };
 
 export type AdminSimpleRow = {
@@ -87,6 +172,69 @@ export type AdminNotificationJobRow = {
   event: string;
   status: string;
   attempts: number;
+  errorMessage: string | null;
+  createdAt: Date;
+  sentAt: Date | null;
+  failedAt: Date | null;
+};
+
+export type AdminProductRow = {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  category: string;
+  brand: string;
+  condition: string;
+  regularPrice: string | number;
+  sellingPrice: string | number;
+  stockQuantity: number;
+  stockStatus: string;
+  featured: boolean;
+  published: boolean;
+  image: string | null;
+};
+
+export type AdminProductDetail = {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  categoryId: string;
+  categoryName: string;
+  brandId: string | null;
+  brandName: string | null;
+  shortDescription: string;
+  detailedDescription: string | null;
+  condition: "NEW" | "USED" | "REFURBISHED";
+  conditionGrade: string | null;
+  regularPrice: string;
+  sellingPrice: string;
+  stockQuantity: number;
+  stockStatus:
+    | "IN_STOCK"
+    | "LOW_STOCK"
+    | "OUT_OF_STOCK"
+    | "SOLD"
+    | "COMING_SOON";
+  warranty: string | null;
+  featured: boolean;
+  published: boolean;
+  images: Array<{
+    id: string;
+    storagePath: string;
+    altText: string;
+    isPrimary: boolean;
+    displayOrder: number;
+  }>;
+  specifications: Array<{
+    id: string;
+    key: string;
+    label: string;
+    unit: string | null;
+    required: boolean;
+    value: string;
+  }>;
 };
 
 function firstTotal(rows: Array<{ total: number | string }>) {
@@ -244,12 +392,14 @@ export async function listAdminLeads(limit = 50): Promise<AdminLeadRow[]> {
       source: leads.source,
       status: leads.status,
       amount: leadItems.sellingPriceSnapshot,
+      saleId: sales.id,
       createdAt: leads.createdAt,
     })
     .from(leads)
     .innerJoin(customers, eq(leads.customerId, customers.id))
     .leftJoin(dealers, eq(leads.dealerId, dealers.id))
     .leftJoin(leadItems, eq(leads.id, leadItems.leadId))
+    .leftJoin(sales, eq(leads.id, sales.leadId))
     .orderBy(desc(leads.createdAt))
     .limit(limit);
 
@@ -267,6 +417,8 @@ export async function listAdminLeads(limit = 50): Promise<AdminLeadRow[]> {
         source: row.source,
         status: row.status,
         amount: row.amount ?? 0,
+        createdAt: row.createdAt,
+        saleRecorded: Boolean(row.saleId),
       });
     }
   }
@@ -274,8 +426,185 @@ export async function listAdminLeads(limit = 50): Promise<AdminLeadRow[]> {
   return [...byLead.values()];
 }
 
+export async function getAdminLeadById(
+  leadId: string,
+): Promise<AdminLeadDetail | null> {
+  if (!hasDatabaseUrl) {
+    const lead = demoLeadRows.find((item) => item.id === leadId);
+
+    if (!lead) return null;
+
+    return {
+      id: lead.id,
+      leadNumber: lead.leadNumber,
+      status: lead.status,
+      source: lead.source,
+      message: null,
+      createdAt: new Date(),
+      customer: { name: lead.customer, mobile: lead.mobile, email: null },
+      dealer: lead.dealer === "Direct" ? null : { id: "dealer_a", businessName: lead.dealer },
+      items: [
+        {
+          id: `${lead.id}-item`,
+          productId: null,
+          productName: lead.product,
+          sku: "DEMO",
+          price: String(lead.amount),
+          quantity: 1,
+        },
+      ],
+      history: [],
+      notes: [],
+    };
+  }
+
+  const db = getDb();
+  const [lead] = await db
+    .select({
+      id: leads.id,
+      leadNumber: leads.leadNumber,
+      status: leads.status,
+      source: leads.source,
+      message: leads.message,
+      createdAt: leads.createdAt,
+      customerName: customers.name,
+      customerMobile: customers.mobile,
+      customerEmail: customers.email,
+      dealerId: dealers.id,
+      dealerName: dealers.businessName,
+    })
+    .from(leads)
+    .innerJoin(customers, eq(leads.customerId, customers.id))
+    .leftJoin(dealers, eq(leads.dealerId, dealers.id))
+    .where(eq(leads.id, leadId))
+    .limit(1);
+
+  if (!lead) return null;
+
+  const [items, historyRows, noteRows] = await Promise.all([
+    db
+      .select({
+        id: leadItems.id,
+        productId: leadItems.productId,
+        productName: leadItems.productNameSnapshot,
+        sku: leadItems.skuSnapshot,
+        price: leadItems.sellingPriceSnapshot,
+        quantity: leadItems.quantity,
+      })
+      .from(leadItems)
+      .where(eq(leadItems.leadId, leadId)),
+    db
+      .select({
+        id: leadStatusHistory.id,
+        previousStatus: leadStatusHistory.previousStatus,
+        newStatus: leadStatusHistory.newStatus,
+        note: leadStatusHistory.note,
+        changedBy: profiles.fullName,
+        createdAt: leadStatusHistory.createdAt,
+      })
+      .from(leadStatusHistory)
+      .leftJoin(profiles, eq(leadStatusHistory.changedByProfileId, profiles.id))
+      .where(eq(leadStatusHistory.leadId, leadId))
+      .orderBy(desc(leadStatusHistory.createdAt)),
+    db
+      .select({
+        id: leadNotes.id,
+        note: leadNotes.note,
+        dealerVisible: leadNotes.dealerVisible,
+        author: profiles.fullName,
+        createdAt: leadNotes.createdAt,
+      })
+      .from(leadNotes)
+      .leftJoin(profiles, eq(leadNotes.authorProfileId, profiles.id))
+      .where(eq(leadNotes.leadId, leadId))
+      .orderBy(desc(leadNotes.createdAt)),
+  ]);
+
+  return {
+    id: lead.id,
+    leadNumber: lead.leadNumber,
+    status: lead.status,
+    source: lead.source,
+    message: lead.message,
+    createdAt: lead.createdAt,
+    customer: {
+      name: lead.customerName,
+      mobile: lead.customerMobile,
+      email: lead.customerEmail,
+    },
+    dealer:
+      lead.dealerId && lead.dealerName
+        ? { id: lead.dealerId, businessName: lead.dealerName }
+        : null,
+    items,
+    history: historyRows,
+    notes: noteRows,
+  };
+}
+
 export async function listWonAdminLeads() {
-  return (await listAdminLeads(100)).filter((lead) => lead.status === "WON");
+  return (await listAdminLeads(100)).filter(
+    (lead) => lead.status === "WON" && !lead.saleRecorded,
+  );
+}
+
+export async function listAdminSales(): Promise<AdminSaleRow[]> {
+  if (!hasDatabaseUrl) return [];
+
+  return getDb()
+    .select({
+      id: sales.id,
+      leadNumber: leads.leadNumber,
+      customer: customers.name,
+      dealer: dealers.businessName,
+      amount: sales.saleAmount,
+      invoiceReference: sales.invoiceReference,
+      saleDate: sales.saleDate,
+    })
+    .from(sales)
+    .innerJoin(leads, eq(sales.leadId, leads.id))
+    .innerJoin(customers, eq(sales.customerId, customers.id))
+    .leftJoin(dealers, eq(sales.dealerId, dealers.id))
+    .orderBy(desc(sales.saleDate))
+    .then((rows) =>
+      rows.map((row) => ({ ...row, dealer: row.dealer ?? "Direct" })),
+    );
+}
+
+export async function listAdminCommissions(): Promise<AdminCommissionRow[]> {
+  if (!hasDatabaseUrl) return [];
+
+  return getDb()
+    .select({
+      id: commissions.id,
+      leadNumber: leads.leadNumber,
+      dealer: dealers.businessName,
+      baseSaleAmount: commissions.baseSaleAmount,
+      commissionValue: commissions.commissionValue,
+      finalAmount: commissions.finalAmount,
+      status: commissions.status,
+      createdAt: commissions.createdAt,
+    })
+    .from(commissions)
+    .innerJoin(leads, eq(commissions.leadId, leads.id))
+    .innerJoin(dealers, eq(commissions.dealerId, dealers.id))
+    .orderBy(desc(commissions.createdAt));
+}
+
+export async function listAdminPayouts(): Promise<AdminPayoutRow[]> {
+  if (!hasDatabaseUrl) return [];
+
+  return getDb()
+    .select({
+      id: commissionPayouts.id,
+      dealer: dealers.businessName,
+      amount: commissionPayouts.amount,
+      paymentReference: commissionPayouts.paymentReference,
+      paidAt: commissionPayouts.paidAt,
+    })
+    .from(commissionPayouts)
+    .innerJoin(dealers, eq(commissionPayouts.dealerId, dealers.id))
+    .orderBy(desc(commissionPayouts.createdAt));
 }
 
 export async function listAdminDealers(): Promise<AdminDealerRow[]> {
@@ -289,10 +618,11 @@ export async function listAdminDealers(): Promise<AdminDealerRow[]> {
       email: null,
       active: dealer.active,
       commissionValue: dealer.commissionRate,
+      hasLogin: true,
     }));
   }
 
-  return getDb()
+  const rows = await getDb()
     .select({
       id: dealers.id,
       businessName: dealers.businessName,
@@ -302,9 +632,256 @@ export async function listAdminDealers(): Promise<AdminDealerRow[]> {
       email: dealers.email,
       active: dealers.active,
       commissionValue: dealers.defaultCommissionValue,
+      profileId: profiles.id,
     })
     .from(dealers)
+    .leftJoin(profiles, eq(dealers.profileId, profiles.id))
     .orderBy(desc(dealers.createdAt));
+
+  return rows.map(({ profileId, ...dealer }) => ({
+    ...dealer,
+    hasLogin: Boolean(profileId),
+  }));
+}
+
+export async function getAdminDealerById(
+  dealerId: string,
+): Promise<AdminDealerDetail | null> {
+  if (!hasDatabaseUrl) {
+    const dealer = (await listAdminDealers()).find((item) => item.id === dealerId);
+
+    return dealer
+      ? { ...dealer, referralClicks: 0, leads: 0, commissions: 0 }
+      : null;
+  }
+
+  const db = getDb();
+  const [dealer] = await db
+    .select({
+      id: dealers.id,
+      businessName: dealers.businessName,
+      contactName: dealers.contactName,
+      referralCode: dealers.referralCode,
+      mobile: dealers.mobile,
+      email: dealers.email,
+      active: dealers.active,
+      commissionValue: dealers.defaultCommissionValue,
+      profileId: profiles.id,
+    })
+    .from(dealers)
+    .leftJoin(profiles, eq(dealers.profileId, profiles.id))
+    .where(eq(dealers.id, dealerId))
+    .limit(1);
+
+  if (!dealer) return null;
+
+  const [clickRows, leadRows, commissionRows] = await Promise.all([
+    db
+      .select({ total: count(referralClicks.id) })
+      .from(referralClicks)
+      .where(eq(referralClicks.dealerId, dealerId)),
+    db
+      .select({ total: count(leads.id) })
+      .from(leads)
+      .where(eq(leads.dealerId, dealerId)),
+    db
+      .select({ total: count(commissions.id) })
+      .from(commissions)
+      .where(eq(commissions.dealerId, dealerId)),
+  ]);
+
+  const { profileId, ...detail } = dealer;
+
+  return {
+    ...detail,
+    hasLogin: Boolean(profileId),
+    referralClicks: firstTotal(clickRows),
+    leads: firstTotal(leadRows),
+    commissions: firstTotal(commissionRows),
+  };
+}
+
+export async function listAdminProducts(): Promise<AdminProductRow[]> {
+  if (!hasDatabaseUrl) {
+    return demoProducts.map((product) => ({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      sku: product.sku,
+      category: product.category,
+      brand: product.brand,
+      condition: product.condition,
+      regularPrice: product.regularPrice,
+      sellingPrice: product.sellingPrice,
+      stockQuantity: product.stockQuantity,
+      stockStatus: product.stockStatus,
+      featured: product.featured,
+      published: true,
+      image: product.image,
+    }));
+  }
+
+  const rows = await getDb()
+    .select({
+      id: products.id,
+      name: products.name,
+      slug: products.slug,
+      sku: products.sku,
+      category: categories.name,
+      brand: brands.name,
+      condition: products.condition,
+      regularPrice: products.regularPrice,
+      sellingPrice: products.sellingPrice,
+      stockQuantity: products.stockQuantity,
+      stockStatus: products.stockStatus,
+      featured: products.featured,
+      published: products.published,
+      image: productImages.storagePath,
+      createdAt: products.createdAt,
+    })
+    .from(products)
+    .innerJoin(categories, eq(products.categoryId, categories.id))
+    .leftJoin(brands, eq(products.brandId, brands.id))
+    .leftJoin(
+      productImages,
+      sql`${productImages.productId} = ${products.id} and ${productImages.isPrimary} = true`,
+    )
+    .orderBy(desc(products.createdAt));
+
+  const byProduct = new Map<string, AdminProductRow>();
+
+  for (const row of rows) {
+    if (!byProduct.has(row.id)) {
+      byProduct.set(row.id, {
+        ...row,
+        brand: row.brand ?? "Other",
+      });
+    }
+  }
+
+  return [...byProduct.values()];
+}
+
+export async function getAdminProductById(
+  productId: string,
+): Promise<AdminProductDetail | null> {
+  if (!hasDatabaseUrl) {
+    const product = demoProducts.find((item) => item.id === productId);
+
+    if (!product) return null;
+
+    return {
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      sku: product.sku,
+      categoryId: slugify(product.category),
+      categoryName: product.category,
+      brandId: slugify(product.brand),
+      brandName: product.brand,
+      shortDescription: product.shortDescription,
+      detailedDescription: product.detailedDescription,
+      condition: product.condition,
+      conditionGrade: product.conditionGrade ?? null,
+      regularPrice: String(product.regularPrice),
+      sellingPrice: String(product.sellingPrice),
+      stockQuantity: product.stockQuantity,
+      stockStatus: product.stockStatus,
+      warranty: product.warranty,
+      featured: product.featured,
+      published: true,
+      images: [
+        {
+          id: `${product.id}-image`,
+          storagePath: product.image,
+          altText: product.name,
+          isPrimary: true,
+          displayOrder: 0,
+        },
+      ],
+      specifications: product.specs.map((spec) => ({
+        id: spec.key,
+        key: spec.key,
+        label: spec.label,
+        unit: null,
+        required: false,
+        value: spec.value,
+      })),
+    };
+  }
+
+  const db = getDb();
+  const [product] = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      slug: products.slug,
+      sku: products.sku,
+      categoryId: products.categoryId,
+      categoryName: categories.name,
+      brandId: products.brandId,
+      brandName: brands.name,
+      shortDescription: products.shortDescription,
+      detailedDescription: products.detailedDescription,
+      condition: products.condition,
+      conditionGrade: products.conditionGrade,
+      regularPrice: products.regularPrice,
+      sellingPrice: products.sellingPrice,
+      stockQuantity: products.stockQuantity,
+      stockStatus: products.stockStatus,
+      warranty: products.warranty,
+      featured: products.featured,
+      published: products.published,
+    })
+    .from(products)
+    .innerJoin(categories, eq(products.categoryId, categories.id))
+    .leftJoin(brands, eq(products.brandId, brands.id))
+    .where(eq(products.id, productId))
+    .limit(1);
+
+  if (!product) return null;
+
+  const [images, specificationRows] = await Promise.all([
+    db
+      .select({
+        id: productImages.id,
+        storagePath: productImages.storagePath,
+        altText: productImages.altText,
+        isPrimary: productImages.isPrimary,
+        displayOrder: productImages.displayOrder,
+      })
+      .from(productImages)
+      .where(eq(productImages.productId, productId))
+      .orderBy(productImages.displayOrder, productImages.createdAt),
+    db
+      .select({
+        id: specificationDefinitions.id,
+        key: specificationDefinitions.key,
+        label: specificationDefinitions.label,
+        unit: specificationDefinitions.unit,
+        required: specificationDefinitions.required,
+        value: productSpecificationValues.value,
+      })
+      .from(specificationDefinitions)
+      .leftJoin(
+        productSpecificationValues,
+        sql`${productSpecificationValues.specificationDefinitionId} = ${specificationDefinitions.id} and ${productSpecificationValues.productId} = ${productId}`,
+      )
+      .where(eq(specificationDefinitions.categoryId, product.categoryId))
+      .orderBy(
+        specificationDefinitions.displayOrder,
+        specificationDefinitions.label,
+      ),
+  ]);
+
+  return {
+    ...product,
+    images,
+    specifications: specificationRows.map((specification) => ({
+      ...specification,
+      value: specification.value ?? "",
+    })),
+  };
 }
 
 export async function listAdminCategories(): Promise<AdminSimpleRow[]> {
@@ -413,7 +990,13 @@ export async function listAdminNotificationJobs(): Promise<
   AdminNotificationJobRow[]
 > {
   if (!hasDatabaseUrl) {
-    return demoNotificationJobs;
+    return demoNotificationJobs.map((job) => ({
+      ...job,
+      errorMessage: null,
+      createdAt: new Date(),
+      sentAt: job.status === "SENT" ? new Date() : null,
+      failedAt: job.status === "FAILED" ? new Date() : null,
+    }));
   }
 
   const rows = await getDb()
@@ -424,6 +1007,10 @@ export async function listAdminNotificationJobs(): Promise<
       status: notificationJobs.status,
       attempts: notificationJobs.attempts,
       payload: notificationJobs.payload,
+      errorMessage: notificationJobs.errorMessage,
+      createdAt: notificationJobs.createdAt,
+      sentAt: notificationJobs.sentAt,
+      failedAt: notificationJobs.failedAt,
       event: productChangeEvents.eventType,
     })
     .from(notificationJobs)
@@ -444,5 +1031,9 @@ export async function listAdminNotificationJobs(): Promise<
         : "MANUAL"),
     status: row.status,
     attempts: row.attempts,
+    errorMessage: row.errorMessage,
+    createdAt: row.createdAt,
+    sentAt: row.sentAt,
+    failedAt: row.failedAt,
   }));
 }
