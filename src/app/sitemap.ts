@@ -1,10 +1,12 @@
 import type { MetadataRoute } from "next";
+import { connection } from "next/server";
 
-import { listCatalogProducts } from "@/features/catalog/data";
+import { listCatalogProductSlugs } from "@/features/catalog/data";
 import { absoluteUrl } from "@/lib/utils";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await listCatalogProducts();
+  await connection();
+  const productSlugs = await listCatalogProductSlugs();
 
   return [
     {
@@ -22,8 +24,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.5,
     },
-    ...products.map((product) => ({
-      url: absoluteUrl(`/products/${product.slug}`),
+    ...productSlugs.map((slug) => ({
+      url: absoluteUrl(`/products/${slug}`),
       changeFrequency: "daily" as const,
       priority: 0.9,
     })),

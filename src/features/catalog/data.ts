@@ -335,6 +335,20 @@ export async function listCatalogProducts(filters: CatalogFilters = {}) {
   return applyFilters(productsList, filters);
 }
 
+export async function listCatalogProductSlugs() {
+  if (!hasDatabaseUrl) {
+    return demoProducts.map((product) => product.slug);
+  }
+
+  const rows = await getDb()
+    .select({ slug: products.slug })
+    .from(products)
+    .where(eq(products.published, true))
+    .orderBy(products.slug);
+
+  return rows.map((row) => row.slug);
+}
+
 export async function listFeaturedProducts() {
   const productsList = await listCatalogProducts();
   return productsList.filter((product) => product.featured);
