@@ -241,70 +241,47 @@ function firstTotal(rows: Array<{ total: number | string }>) {
   return Number(rows[0]?.total ?? 0);
 }
 
-async function commissionTotal(status: "PENDING" | "APPROVED" | "PAID") {
-  const [row] = await getDb()
-    .select({
-      total: sql<string>`coalesce(sum(${commissions.finalAmount}), 0)`,
-    })
-    .from(commissions)
-    .where(eq(commissions.status, status));
-
-  return Number(row?.total ?? 0);
-}
-
 export async function getAdminDashboardMetrics() {
   if (!hasDatabaseUrl) {
     return demoAdminMetrics;
   }
 
-  const db = getDb();
-  const [
-    totalProducts,
-    inStock,
-    lowStock,
-    outOfStock,
-    customerCount,
-    dealerCount,
-    activeDealerCount,
-    clickCount,
-    leadCount,
-    saleCount,
-    pendingCommission,
-    approvedCommission,
-    paidCommission,
-  ] = await Promise.all([
-    db.select({ total: count(products.id) }).from(products),
-    db
-      .select({ total: count(products.id) })
-      .from(products)
-      .where(eq(products.stockStatus, "IN_STOCK")),
-    db
-      .select({ total: count(products.id) })
-      .from(products)
-      .where(eq(products.stockStatus, "LOW_STOCK")),
-    db
-      .select({ total: count(products.id) })
-      .from(products)
-      .where(eq(products.stockStatus, "OUT_OF_STOCK")),
-    db.select({ total: count(customers.id) }).from(customers),
-    db.select({ total: count(dealers.id) }).from(dealers),
-    db
-      .select({ total: count(dealers.id) })
-      .from(dealers)
-      .where(eq(dealers.active, true)),
-    db.select({ total: count(referralClicks.id) }).from(referralClicks),
-    db.select({ total: count(leads.id) }).from(leads),
-    db.select({ total: count(sales.id) }).from(sales),
-    commissionTotal("PENDING"),
-    commissionTotal("APPROVED"),
-    commissionTotal("PAID"),
-  ]);
+  const [summary] = await getDb().execute<{
+    totalProducts: number;
+    inStock: number;
+    lowStock: number;
+    outOfStock: number;
+    customerCount: number;
+    dealerCount: number;
+    activeDealerCount: number;
+    clickCount: number;
+    leadCount: number;
+    saleCount: number;
+    pendingCommission: string;
+    approvedCommission: string;
+    paidCommission: string;
+  }>(sql`
+    select
+      (select count(*)::int from ${products}) as "totalProducts",
+      (select count(*)::int from ${products} where ${products.stockStatus} = 'IN_STOCK') as "inStock",
+      (select count(*)::int from ${products} where ${products.stockStatus} = 'LOW_STOCK') as "lowStock",
+      (select count(*)::int from ${products} where ${products.stockStatus} = 'OUT_OF_STOCK') as "outOfStock",
+      (select count(*)::int from ${customers}) as "customerCount",
+      (select count(*)::int from ${dealers}) as "dealerCount",
+      (select count(*)::int from ${dealers} where ${dealers.active} = true) as "activeDealerCount",
+      (select count(*)::int from ${referralClicks}) as "clickCount",
+      (select count(*)::int from ${leads}) as "leadCount",
+      (select count(*)::int from ${sales}) as "saleCount",
+      (select coalesce(sum(${commissions.finalAmount}), 0) from ${commissions} where ${commissions.status} = 'PENDING') as "pendingCommission",
+      (select coalesce(sum(${commissions.finalAmount}), 0) from ${commissions} where ${commissions.status} = 'APPROVED') as "approvedCommission",
+      (select coalesce(sum(${commissions.finalAmount}), 0) from ${commissions} where ${commissions.status} = 'PAID') as "paidCommission"
+  `);
 
-  const productTotal = firstTotal(totalProducts);
-  const inStockTotal = firstTotal(inStock);
-  const leadsTotal = firstTotal(leadCount);
-  const salesTotal = firstTotal(saleCount);
-  const clicksTotal = firstTotal(clickCount);
+  const productTotal = Number(summary?.totalProducts ?? 0);
+  const inStockTotal = Number(summary?.inStock ?? 0);
+  const leadsTotal = Number(summary?.leadCount ?? 0);
+  const salesTotal = Number(summary?.saleCount ?? 0);
+  const clicksTotal = Number(summary?.clickCount ?? 0);
 
   return [
     {
@@ -321,23 +298,23 @@ export async function getAdminDashboardMetrics() {
     },
     {
       label: "Low Stock",
-      value: String(firstTotal(lowStock)),
+      value: String(summary?.lowStock ?? 0),
       delta: "Needs attention",
     },
     {
       label: "Out of Stock",
-      value: String(firstTotal(outOfStock)),
+      value: String(summary?.outOfStock ?? 0),
       delta: "Restock queue",
     },
     {
       label: "Customers",
-      value: String(firstTotal(customerCount)),
+      value: String(summary?.customerCount ?? 0),
       delta: "Captured contacts",
     },
     {
       label: "Dealers",
-      value: String(firstTotal(dealerCount)),
-      delta: `${firstTotal(activeDealerCount)} active`,
+      value: String(summary?.dealerCount ?? 0),
+      delta: `${summary?.activeDealerCount ?? 0} active`,
     },
     {
       label: "Referral Clicks",
@@ -360,17 +337,17 @@ export async function getAdminDashboardMetrics() {
     },
     {
       label: "Pending Commission",
-      value: formatCurrency(pendingCommission),
+      value: formatCurrency(Number(summary?.pendingCommission ?? 0)),
       delta: "Approval needed",
     },
     {
       label: "Approved Commission",
-      value: formatCurrency(approvedCommission),
+      value: formatCurrency(Number(summary?.approvedCommission ?? 0)),
       delta: "Ready payout",
     },
     {
       label: "Paid Commission",
-      value: formatCurrency(paidCommission),
+      value: formatCurrency(Number(summary?.paidCommission ?? 0)),
       delta: "Closed payouts",
     },
   ];
